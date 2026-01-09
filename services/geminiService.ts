@@ -2,6 +2,7 @@
 import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
 import { SYSTEM_CONFIG } from "../constants";
 import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../types";
+import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
 
 export const getAIInstance = () => new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
@@ -115,7 +116,6 @@ export const analyzeClinicalData = async (imageContent: { data: string; mimeType
             - Analyse UNIQUEMENT les données présentes.
             - Si un biomarqueur est absent, mets-le à null.
             - N'invente jamais de chiffres.
-            - Suggère un protocole NeoLife adapté aux données identifiées.
             - Sortie JSON valide uniquement.
           ` }
         ]
@@ -125,7 +125,7 @@ export const analyzeClinicalData = async (imageContent: { data: string; mimeType
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
-        required: ["patient", "biomarkers", "analysis", "protocol", "risk_flags", "timestamps"],
+        required: ["patient", "biomarkers", "analysis", "risk_flags", "timestamps"],
         properties: {
           patient: {
             type: Type.OBJECT,
@@ -148,17 +148,6 @@ export const analyzeClinicalData = async (imageContent: { data: string; mimeType
             }
           },
           analysis: { type: Type.STRING },
-          protocol: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                product: { type: Type.STRING },
-                dosage: { type: Type.STRING },
-                duration_days: { type: Type.NUMBER }
-              }
-            }
-          },
           risk_flags: {
             type: Type.ARRAY,
             items: { type: Type.STRING }
@@ -175,7 +164,30 @@ export const analyzeClinicalData = async (imageContent: { data: string; mimeType
   });
 
   try {
-    return JSON.parse(response.text);
+    const clinicalData = JSON.parse(response.text);
+    
+    // Générer les recommandations produits basées sur les biomarqueurs
+    if (clinicalData.biomarkers) {
+      const recommendations = neoLifeAPI.getRecommendationsForBiomarkers(clinicalData.biomarkers);
+      
+      // Ajouter les liens de commande avec tracking vendeur
+      const sellerId = SYSTEM_CONFIG.founder.id; // ID par défaut ou depuis le contexte
+      const orderLink = neoLifeAPI.createDirectOrderLink(recommendations, sellerId);
+      
+      clinicalData.protocol = recommendations.map(rec => ({
+        product: rec.product.title,
+        sku: rec.product.sku,
+        dosage: rec.dosage,
+        duration_days: 30,
+        reason: rec.reason,
+        price: rec.product.member.singles,
+        order_url: `${orderLink}&focus=${rec.product.sku}` // Lien direct produit
+      }));
+      
+      clinicalData.order_link = orderLink; // Lien commande complète
+    }
+    
+    return clinicalData;
   } catch (e) {
     console.error("JSON Parse Error during clinical analysis", e);
     return null;
