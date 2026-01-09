@@ -16,6 +16,7 @@ import { DiagnosticHistory } from './components/DiagnosticHistory';
 import { LegalDisclaimer } from './components/LegalDisclaimer';
 import { Language, AuthUser } from './types'; 
 import { generateJoseAudio, decodeBase64, decodeAudioData } from './services/geminiService';
+import { supabase, getCurrentUser, signOut } from './services/supabaseService';
 import { 
   LayoutDashboard, Bot, GraduationCap, Share2, Wallet, Menu,
   Zap, Settings, Layers, Cpu, Rocket, Volume2, Square, Clock, Trophy, ShieldCheck, User,
@@ -51,22 +52,30 @@ const App: React.FC = () => {
     const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
     const syncTimer = setInterval(() => setSyncStatus(prev => +(prev + (Math.random() * 0.1 - 0.05)).toFixed(1)), 5000);
     
-    const savedSession = localStorage.getItem('ndsa_session');
-    const legalAccepted = localStorage.getItem('ndsa_legal_accepted');
-    
-    if (savedSession) {
-      try {
-        const user = JSON.parse(savedSession) as AuthUser;
-        user.joinedDate = new Date(user.joinedDate);
-        setCurrentUser(user);
-        if (!localStorage.getItem(`ndsa_onboarding_${user.id}`)) setShowOnboarding(true);
-      } catch (e) {}
-    }
+    // Check Supabase auth state
+    const checkAuth = async () => {
+      const { data: { user } } = await getCurrentUser();
+      if (user) {
+        const authUser: AuthUser = {
+          id: user.id,
+          name: user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          neoLifeId: SYSTEM_CONFIG.founder.id,
+          role: user.email?.includes('admin') ? 'ADMIN' : 'LEADER',
+          joinedDate: new Date(user.created_at),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`
+        };
+        setCurrentUser(authUser);
+      }
+      setIsAuthLoading(false);
+    };
 
+    checkAuth();
+    
+    const legalAccepted = localStorage.getItem('ndsa_legal_accepted');
     if (legalAccepted === 'true') setHasAcceptedLegal(true);
     else setShowLegal(true);
     
-    setIsAuthLoading(false);
     return () => { clearInterval(clockTimer); clearInterval(syncTimer); };
   }, []);
 
@@ -74,6 +83,11 @@ const App: React.FC = () => {
     setCurrentUser(user);
     setActiveTab('stats');
     if (!localStorage.getItem(`ndsa_onboarding_${user.id}`)) setShowOnboarding(true);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    setCurrentUser(null);
   };
 
   const stopBriefing = () => {

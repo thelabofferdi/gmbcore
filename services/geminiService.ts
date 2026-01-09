@@ -3,7 +3,7 @@ import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/ge
 import { SYSTEM_CONFIG } from "../constants";
 import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../types";
 
-export const getAIInstance = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const getAIInstance = () => new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
 export const generateJoseResponseStream = async (
   userPrompt: string, 
@@ -89,7 +89,7 @@ export const generateJoseResponseStream = async (
   `;
 
   return await ai.models.generateContentStream({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-2.5-flash',
     contents: contents,
     config: {
       systemInstruction,
@@ -103,7 +103,7 @@ export const analyzeClinicalData = async (imageContent: { data: string; mimeType
   const ai = getAIInstance();
   
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-2.5-flash',
     contents: [
       {
         parts: [

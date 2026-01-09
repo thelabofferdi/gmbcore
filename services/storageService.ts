@@ -1,9 +1,13 @@
 
 import { DiagnosticReport } from '../types';
+import { saveClinicalData, getClinicalHistory } from './supabaseService';
 
-const DB_NAME = 'ndsa_biologs_db';
-const DB_VERSION = 1;
-const STORE_NAME = 'reports';
+// Declare global currentUser for type safety
+declare global {
+  interface Window {
+    currentUser?: { id: string };
+  }
+}
 
 export const storageService = {
   async init(): Promise<IDBDatabase> {
@@ -20,32 +24,38 @@ export const storageService = {
     });
   },
 
+  // Replace IndexedDB with Supabase storage
   async saveReport(report: DiagnosticReport): Promise<void> {
-    const db = await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(report);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+    if (!window.currentUser) throw new Error('User not authenticated');
+    
+    const { error } = await saveClinicalData(window.currentUser.id, {
+      patient_age: report.patient?.age,
+      patient_sex: report.patient?.sex,
+      analysis: report.analysis,
+      protocol: report.protocol,
+      risk_flags: report.riskFlags || []
     });
+    
+    if (error) throw error;
   },
 
   async getAllReports(): Promise<DiagnosticReport[]> {
-    const db = await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.getAll();
-      request.onsuccess = () => {
-        const results = request.result.map(r => ({
-          ...r,
-          date: new Date(r.date)
-        }));
-        resolve(results.sort((a, b) => b.date.getTime() - a.date.getTime()));
-      };
-      request.onerror = () => reject(request.error);
-    });
+    if (!window.currentUser) return [];
+    
+    const { data, error } = await getClinicalHistory(window.currentUser.id);
+    if (error) throw error;
+    
+    return (data || []).map(record => ({
+      id: record.id,
+      date: new Date(record.created_at),
+      patient: {
+        age: record.patient_age,
+        sex: record.patient_sex
+      },
+      analysis: record.analysis,
+      protocol: record.protocol,
+      riskFlags: record.risk_flags
+    }));
   },
 
   async deleteReport(id: string): Promise<void> {

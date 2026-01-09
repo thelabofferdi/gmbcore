@@ -4,6 +4,7 @@ import { Fingerprint, Loader2, ShieldCheck, Zap, Layers, Volume2, Square } from 
 import { AuthUser } from '../types';
 import { SYSTEM_CONFIG } from '../constants';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
+import { signIn, signUp } from '../services/supabaseService';
 
 interface AuthViewProps {
   onLogin: (user: AuthUser) => void;
@@ -15,11 +16,12 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const audioContextRef = React.useRef<AudioContext | null>(null);
   const activeSourceRef = React.useRef<AudioBufferSourceNode | null>(null);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Identification requise.");
@@ -27,20 +29,48 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
     }
     setIsScanning(true);
     setError('');
-    setTimeout(() => {
-      const mockUser: AuthUser = {
-        id: 'u_' + Math.random().toString(36).substring(7),
-        name: email.split('@')[0],
-        email: email,
-        neoLifeId: SYSTEM_CONFIG.founder.id,
-        role: email.includes('admin') ? 'ADMIN' : 'LEADER',
-        joinedDate: new Date(),
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
-      };
-      localStorage.setItem('ndsa_session', JSON.stringify(mockUser));
-      onLogin(mockUser);
+
+    try {
+      const { data, error } = isSignUp 
+        ? await signUp(email, password)
+        : await signIn(email, password);
+
+      if (error) {
+        if (error.message.includes('Email not confirmed')) {
+          setError('Vérifiez votre email pour confirmer votre compte');
+        } else {
+          setError(error.message);
+        }
+        setIsScanning(false);
+        return;
+      }
+
+      if (isSignUp) {
+        setError('Compte créé ! Vérifiez votre email pour confirmer votre inscription.');
+        setIsScanning(false);
+        return;
+      }
+
+      if (data.user && data.user.email_confirmed_at) {
+        const user: AuthUser = {
+          id: data.user.id,
+          name: data.user.email?.split('@')[0] || 'User',
+          email: data.user.email || '',
+          neoLifeId: SYSTEM_CONFIG.founder.id,
+          role: data.user.email?.includes('admin') ? 'ADMIN' : 'LEADER',
+          joinedDate: new Date(data.user.created_at),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email}`
+        };
+        onLogin(user);
+      } else if (data.user && !data.user.email_confirmed_at) {
+        setError('Veuillez confirmer votre email avant de vous connecter');
+        setIsScanning(false);
+      }
+    } catch (err) {
+      setError('Erreur de connexion');
+    } finally {
       setIsScanning(false);
-    }, 2500);
+    }
   };
 
   const stopAudio = () => {
@@ -127,7 +157,15 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             className="w-full py-8 bg-[#00d4ff] text-slate-950 font-black rounded-[2.5rem] uppercase tracking-[0.5em] text-xs shadow-2xl flex items-center justify-center gap-4 hover:brightness-110 active:scale-95 transition-all"
             aria-busy={isScanning}
           >
-            {isScanning ? <><Loader2 className="animate-spin" size={20} /> SYNC...</> : <><Fingerprint size={20} /> SYNCHRONISER</>}
+            {isScanning ? <><Loader2 className="animate-spin" size={20} /> SYNC...</> : <><Fingerprint size={20} /> {isSignUp ? 'CRÉER COMPTE' : 'SYNCHRONISER'}</>}
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+          >
+            {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
           </button>
         </form>
       </div>
