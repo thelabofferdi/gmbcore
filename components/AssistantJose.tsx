@@ -10,10 +10,11 @@ import { storageService } from '../services/storageService';
 import { getCurrentSponsor } from '../services/referralService';
 import { Message, Language, AIPersona, ReferralContext, DiagnosticReport, ClinicalData } from '../types'; 
 import { SYSTEM_CONFIG, I18N as I18N_CONST } from '../constants';
+import { jsPDF } from 'jspdf';
 import { 
   Send, Bot, Loader2, Play, Check, Settings2, Share2, Square, Download, UserCheck, CheckCheck, Copy, Zap, User, Camera, Image as ImageIcon, Sparkles, Activity, FileText, FlaskConical, AlertCircle, ShieldAlert,
   Microscope, Rocket, HelpCircle, ChevronRight, Headphones, Brain, ThermometerSnowflake, Droplets, 
-  Terminal, Cpu, ShieldCheck, BarChart3, Fingerprint, Layers
+  Terminal, Cpu, ShieldCheck, BarChart3, Fingerprint, Layers, HeartPulse, ShoppingCart, MessageCircle, Volume2, X, ExternalLink
 } from 'lucide-react';
 
 interface AssistantJoseProps {
@@ -37,13 +38,15 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
   const [referralContext, setReferralContext] = useState<ReferralContext | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ data: string; mimeType: string } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [groundingSources, setGroundingSources] = useState<any[]>([]);
+  const [isExporting, setIsExporting] = useState<string | null>(null);
   
   const persona: AIPersona = {
-    name: "JOSÉ IMPERIUM 2026",
-    role: "Architecte en Chef de Restauration Biologique",
-    philosophy: "Protocole NDSA. Restauration de l'autorité cellulaire.",
-    tonality: "Souverain Stark, Expert Clinique, Bienveillance Protectrice.",
-    coreValues: "Standard SAB, Précision Biomédicale, Succès NeoLife."
+    name: SYSTEM_CONFIG.ai.name,
+    role: SYSTEM_CONFIG.ai.role,
+    philosophy: "Restauration du terrain biologique via la Loi des 37°C et la Psychiatrie Cellulaire.",
+    tonality: "Souveraine, scientifique, autoritaire et empathique.",
+    coreValues: "SAB Standard, Bio-Sync Protocol."
   };
 
   const suggestions = [
@@ -113,6 +116,48 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
       await storageService.saveReport(newReport);
     } catch (e) {
       console.error("Error saving to bio-log:", e);
+    }
+  };
+
+  const exportConversationToPDF = async (messageId: string) => {
+    setIsExporting(messageId);
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPosition = margin;
+
+      // En-tête
+      pdf.setFontSize(16);
+      pdf.text('Consultation Coach José - NDSA', margin, yPosition);
+      yPosition += 10;
+      
+      pdf.setFontSize(10);
+      pdf.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, margin, yPosition);
+      yPosition += 20;
+
+      // Messages
+      messages.forEach((msg, index) => {
+        if (yPosition > 250) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        pdf.setFontSize(12);
+        pdf.text(msg.role === 'user' ? 'Vous:' : 'Coach José:', margin, yPosition);
+        yPosition += 8;
+
+        pdf.setFontSize(10);
+        const lines = pdf.splitTextToSize(msg.parts[0].text, pageWidth - 2 * margin);
+        pdf.text(lines, margin, yPosition);
+        yPosition += lines.length * 5 + 10;
+      });
+
+      pdf.save(`consultation-jose-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+    } finally {
+      setIsExporting(null);
     }
   };
 
@@ -303,6 +348,22 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
                          </div>
                        )}
                        <p className="leading-relaxed text-[15px] font-medium whitespace-pre-line">{msg.parts[0].text}</p>
+                       {msg.role === 'model' && msg.parts[0].text.length > 100 && (
+                         <div className="flex gap-2 mt-4 pt-4 border-t border-white/10">
+                           <button
+                             onClick={() => exportConversationToPDF(msg.id)}
+                             disabled={isExporting === msg.id}
+                             className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-medium transition-colors disabled:opacity-50"
+                           >
+                             {isExporting === msg.id ? (
+                               <Loader2 size={14} className="animate-spin" />
+                             ) : (
+                               <Download size={14} />
+                             )}
+                             Export PDF
+                           </button>
+                         </div>
+                       )}
                     </div>
                   )}
                   {msg.role === 'model' && !msg.parts[0].text.startsWith('![Bio-Viz]') && (

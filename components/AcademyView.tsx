@@ -1,18 +1,45 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SYSTEM_CONFIG } from '../constants';
-import { Lesson, AcademyModule } from '../types';
-import { generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
+import { Lesson, AcademyModule, Message, Resource } from '../types';
+import { voiceService } from '../services/voiceService';
+import { generateJoseResponseStream } from '../services/geminiService';
+import { jsPDF } from 'jspdf';
 import { 
   BookOpen, ChevronRight, PlayCircle, Search, Lock, 
   Rocket, Sparkles, FileText, Info, Download, Volume2, Loader2, 
   Square, X, BrainCircuit, Target, Users, Globe, Trophy, ArrowRight,
   CheckCircle2, ArrowLeft, Book, HelpCircle, Lightbulb, Play,
-  ChevronLeft
+  ChevronLeft, Bot, User, Send, GraduationCap, Award, Star, BookMarked
 } from 'lucide-react';
 
 export const AcademyView: React.FC<{ isLevel2Unlocked?: boolean }> = ({ isLevel2Unlocked = false }) => {
+  const [activeView, setActiveView] = useState<'curriculum' | 'resources' | 'mentor'>('curriculum');
   const [selectedModuleIdx, setSelectedModuleIdx] = useState(0);
+  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  
+  // Interactive Professor State
+  const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
+  const [professorMessages, setProfessorMessages] = useState<Message[]>([]);
+  const [isProfessorLoading, setIsProfessorLoading] = useState(false);
+  const [userInput, setUserInput] = useState('');
+  const [isLessonCompleted, setIsLessonCompleted] = useState(false);
+  const [activeSpeechKey, setActiveSpeechKey] = useState<string | null>(null);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const unsubVoice = voiceService.subscribe((isSpeaking, key) => {
+      setActiveSpeechKey(isSpeaking ? key : null);
+    });
+    return () => unsubVoice();
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [professorMessages]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isReading, setIsReading] = useState(false);

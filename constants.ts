@@ -95,9 +95,19 @@ export const SYSTEM_CONFIG = {
     medical_disclaimer: "ATTENTION : JOSÉ est une IA d'analyse de données. En aucun cas ses rapports ne constituent une prescription médicale officielle."
   },
   ai: {
-    name: "JOSÉ",
-    role: "Bio-Architecte & Expert en Nutrition Cellulaire",
-    disclaimer: "⚠️ Je suis JOSÉ. Je décode vos bio-données. Consultez toujours un médecin pour un avis clinique officiel.",
+    name: "Coach José",
+    role: "Expert en Nutrition Cellulaire & Psychiatrie Cellulaire",
+    business_mentor: {
+      name: "The Master Mentor",
+      role: "Conférencier International & Expert en Leadership MLM",
+      specialty: "Duplication Massive & Psychologie de la Vente Directe"
+    },
+    professor: {
+      name: "Pr. NDSA",
+      role: "Tuteur IA Bio-Sync V4",
+      philosophy: "Maïeutique digitale et validation des acquis par l'expérience."
+    },
+    disclaimer: "⚠️ Je suis Coach José. Je décode vos bio-données. Consultez toujours un médecin pour un avis clinique officiel."
   },
   ui: {
     backgroundGradient: "linear-gradient(135deg, #020617 0%, #0f172a 100%)",
@@ -114,32 +124,70 @@ export const SYSTEM_CONFIG = {
   academy: {
     modules: [
       { 
-        id: "neuro-psych", 
-        title: "Neuro-Psychiatrie Cellulaire", 
-        description: "Comprendre comment l'esprit verrouille ou libère la cellule.",
+        id: "m1-bio-restauration", 
+        title: "Restauration Biologique", 
+        description: "Les 5 piliers de la revitalisation cellulaire profonde.",
         lessons: [
           {
-            id: "psy-cell-1",
-            title: "La Psychiatrie Cellulaire : L'Esprit sur la Matière",
-            content: "La NDSA intègre les dernières découvertes : les émotions toxiques comme la colère, la médisance ou la haine génèrent un stress oxydatif qui fige littéralement les membranes cellulaires. Un esprit fluide égale une membrane fluide.",
-            starkInsight: "La colère est un poison biochimique qui paralyse vos cellules.",
-            practicalExercise: "Pratiquez le 'Pardon Métabolique' pour fluidifier votre bio-système."
+            id: "CH-01",
+            title: "La Révolution Cellulaire",
+            content: "Focus : Membrane & Tre-en-en. Certification : Spécialiste en Perméabilité Cellulaire.",
+            sections: [
+              "La Cellule : L'unité fondamentale du chèque et de la santé.",
+              "La Membrane : Pourquoi 90% des compléments finissent aux toilettes sans Tre-en-en.",
+              "Fluidité vs Rigidité : L'impact sur l'absorption et l'élimination des toxines.",
+              "Validation : Quiz sur le rôle du Tre-en-en."
+            ],
+            starkInsight: "Si la porte est verrouillée, personne n'entre. Le Tre-en-en est la clé universelle.",
+            practicalExercise: "Expliquer le concept de perméabilité à un prospect en 3 images."
+          },
+          {
+            id: "CH-02",
+            title: "L'Équilibre Acido-Basique",
+            content: "Focus : pH & Terrain. Certification : Expert en Équilibre des Terrains.",
+            sections: [
+              "Le Terrain : Comprendre pourquoi l'acidité fige le métabolisme.",
+              "Acidose : Quand le corps puise ses minéraux dans vos os.",
+              "Alcalinisation : Préparer un terrain fertile pour les nutriments.",
+              "Validation : Quiz sur l'action du corps en acidose."
+            ],
+            starkInsight: "On ne plante pas de fleurs dans du goudron. Nettoyez le terrain d'abord.",
+            practicalExercise: "Calculer son score d'acidité via le questionnaire JOSÉ."
+          },
+          {
+            id: "CH-03",
+            title: "Le Trio de Relance",
+            content: "Focus : Synergie des 3 piliers. Certification : Spécialiste en Synergie Nutritionnelle.",
+            sections: [
+              "Ouvrir : Le rôle de base du Tre-en-en.",
+              "Protéger : L'immunité boostée de 37% par le Carotenoid Complex.",
+              "Équilibrer : La force des acides gras Omega-3.",
+              "Validation : Pourquoi l'action doit être simultanée."
+            ],
+            starkInsight: "1+1+1 = 10. La synergie NDSA dépasse la simple addition de produits.",
+            practicalExercise: "Présenter le pack Trio de Relance."
           }
         ] 
       },
       { 
-        id: "nutri-therm", 
-        title: "Thermique & Vitalité Fondamentale", 
-        description: "Le respect de la température biologique pour une absorption maximale.",
+        id: "m2-performance-leadership", 
+        title: "Performance & Leadership", 
+        description: "Maîtriser l'esprit et la structure pour une duplication massive.",
         lessons: [
           {
-            id: "therm-0-danger",
-            title: "Le Danger des 0°C : Pourquoi le Froid fige la vie",
-            content: "Votre corps fonctionne à 37°C. Consommer des boissons glacées (0°C) fige instantanément les lipides de vos membranes cellulaires. Une cellule figée ne peut plus absorber de nutriments ni rejeter de toxines.",
-            starkInsight: "Chaque glaçon est un verrou posé sur votre vitalité.",
-            practicalExercise: "Basculez vers des boissons à 37°C ou ambiantes pour restaurer l'énergie."
+            id: "CH-06",
+            title: "Performance Cognitive & Stress",
+            content: "Focus : Psychiatrie Cellulaire. Certification : Praticien en Performance Cognitive.",
+            sections: [
+              "Le Cerveau Gras : Pourquoi les lipides sont la clé de l'humeur.",
+              "Omega-3 Salmon Oil : Fluidité de la transmission nerveuse.",
+              "Gestion du Stress : Calmer l'inflammation neuronale.",
+              "Validation : Quiz sur les composants majeurs du cerveau."
+            ],
+            starkInsight: "Un leader serein décide mieux. Nourrissez vos neurones.",
+            practicalExercise: "Test de focus mental pré et post Omega-3."
           }
-        ] 
+        ]
       }
     ],
     premiumModules: []

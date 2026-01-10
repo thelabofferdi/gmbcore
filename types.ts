@@ -8,6 +8,18 @@ export enum PricingZone {
 export type Language = 'fr' | 'en' | 'it' | 'es';
 export type TimeFormat = '24h' | '12h' | 'seconds';
 
+export interface Resource {
+  id: string;
+  title: string;
+  type: 'BOOK' | 'VIDEO' | 'AUDIO';
+  author: string;
+  description: string;
+  price: number | 'FREE';
+  currency: string;
+  link: string;
+  thumbnail?: string;
+}
+
 export interface AuthUser {
   id: string;
   name: string;
