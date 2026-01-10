@@ -17,7 +17,7 @@ import { LegalDisclaimer } from './components/LegalDisclaimer';
 import { ShareLinkGenerator } from './components/ShareLinkGenerator';
 import { ProspectMode } from './components/ProspectMode';
 import { Language, AuthUser } from './types'; 
-import { generateJoseAudio, decodeBase64, decodeAudioData } from './services/geminiService';
+import { voiceService } from './services/voiceService';
 import { supabase, getCurrentUser, signOut } from './services/supabaseService';
 import { getCurrentSponsor } from './services/referralService';
 import { getDashboardStats, getAdminStats, DashboardStats, AdminStats } from './services/statsService';

@@ -19,7 +19,7 @@ export const I18N = {
     report_ready: "Rapport de Restauration Prêt",
     legal_title: "Conformité & Protection Juridique",
     legal_accept: "Accepter les Protocoles de Sécurité",
-    legal_disclaimer: "AXIOMA OS est une plateforme d'aide à la décision nutritionnelle. L'IA José n'est pas un médecin certifié. Les données sont traitées localement pour votre confidentialité."
+    legal_disclaimer: "L'IA José ne remplace pas votre médecin. AXIOMA OS est une plateforme d'aide à la décision nutritionnelle. Les données sont traitées localement pour votre confidentialité."
   },
   en: {
     dashboard: "Command Cockpit",
@@ -38,7 +38,7 @@ export const I18N = {
     report_ready: "Restoration Report Ready",
     legal_title: "Legal Compliance & Protection",
     legal_accept: "Accept Security Protocols",
-    legal_disclaimer: "AXIOMA OS is a nutritional decision support platform. AI José is not a certified physician. Data is processed locally for your privacy."
+    legal_disclaimer: "AI José does not replace your doctor. AXIOMA OS is a nutritional decision support platform. Data is processed locally for your privacy."
   },
   it: {
     dashboard: "Cabina di Comando",
@@ -81,10 +81,10 @@ export const I18N = {
 };
 
 export const SYSTEM_CONFIG = {
-  brand: "AXIOMA OS",
-  version: "5.5.0-IMPERIUM",
+  brand: "NDSA GMBC OS",
+  version: "6.5.0-IMPERIUM",
   founder: {
-    name: "Leader JOSÉ",
+    name: "ABADA M. José Gaétan",
     id: "067-2922111",
     officialShopUrl: "https://shopneolife.com/startupforworld/shop/atoz",
     status: "Fondateur Visionnaire"
@@ -92,7 +92,7 @@ export const SYSTEM_CONFIG = {
   legal: {
     tos_url: "https://axioma-os.com/terms",
     privacy_url: "https://axioma-os.com/privacy",
-    medical_disclaimer: "ATTENTION : JOSÉ est une IA d'analyse de données. En aucun cas ses rapports ne constituent une prescription médicale officielle. Consultez un professionnel de santé agréé pour toute décision médicale."
+    medical_disclaimer: "ATTENTION : JOSÉ est une IA d'analyse de données. En aucun cas ses rapports ne constituent une prescription médicale officielle."
   },
   ai: {
     name: "JOSÉ",
@@ -114,31 +114,38 @@ export const SYSTEM_CONFIG = {
   academy: {
     modules: [
       { 
-        id: "m1", 
-        title: "Science de la Restauration Cellulaire", 
-        description: "Maîtrisez les fondements biologiques du SAB pour devenir une autorité en santé.",
+        id: "neuro-psych", 
+        title: "Neuro-Psychiatrie Cellulaire", 
+        description: "Comprendre comment l'esprit verrouille ou libère la cellule.",
         lessons: [
           {
-            id: "m1-l1",
-            title: "La membrane : porte d'entrée de la vie",
-            content: "La nutrition cellulaire commence par la compréhension de la membrane lipidique. La technologie Tre-en-en restaure cette fluidité critique.",
-            starkInsight: "Si la porte est verrouillée, la fête n'aura jamais lieu.",
-            practicalExercise: "Analysez votre apport lipidique quotidien."
+            id: "psy-cell-1",
+            title: "La Psychiatrie Cellulaire : L'Esprit sur la Matière",
+            content: "La NDSA intègre les dernières découvertes : les émotions toxiques comme la colère, la médisance ou la haine génèrent un stress oxydatif qui fige littéralement les membranes cellulaires. Un esprit fluide égale une membrane fluide.",
+            starkInsight: "La colère est un poison biochimique qui paralyse vos cellules.",
+            practicalExercise: "Pratiquez le 'Pardon Métabolique' pour fluidifier votre bio-système."
+          }
+        ] 
+      },
+      { 
+        id: "nutri-therm", 
+        title: "Thermique & Vitalité Fondamentale", 
+        description: "Le respect de la température biologique pour une absorption maximale.",
+        lessons: [
+          {
+            id: "therm-0-danger",
+            title: "Le Danger des 0°C : Pourquoi le Froid fige la vie",
+            content: "Votre corps fonctionne à 37°C. Consommer des boissons glacées (0°C) fige instantanément les lipides de vos membranes cellulaires. Une cellule figée ne peut plus absorber de nutriments ni rejeter de toxines.",
+            starkInsight: "Chaque glaçon est un verrou posé sur votre vitalité.",
+            practicalExercise: "Basculez vers des boissons à 37°C ou ambiantes pour restaurer l'énergie."
           }
         ] 
       }
     ],
-    premiumModules: [
-      { 
-        id: "m3", 
-        title: "Magnétisme Numérique AXIOMA", 
-        description: "Utilisez l'IA pour générer des leads en dormant.",
-        lessons: [] 
-      }
-    ]
+    premiumModules: []
   },
   socialViral: {
-    template: "J'utilise AXIOMA OS et l'IA JOSÉ pour ma santé cellulaire. Rejoins mon équipe ! 🧬🚀",
+    template: "J'utilise NDSA GMBC OS et l'IA JOSÉ pour ma santé cellulaire. Rejoins mon équipe ! 🧬🚀",
     responseScript: "Bonjour ! Utilisez ce lien pour votre diagnostic : ",
     structure: "HOOK / BRIDGE / CTA"
   }

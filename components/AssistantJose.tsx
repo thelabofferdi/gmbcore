@@ -2,17 +2,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   generateJoseResponseStream, 
-  generateJoseAudio, 
-  decodeBase64, 
-  decodeAudioData, 
   generateBiologicalVisualization,
   analyzeClinicalData 
 } from '../services/geminiService';
+import { voiceService } from '../services/voiceService';
 import { storageService } from '../services/storageService';
 import { Message, Language, AIPersona, ReferralContext, DiagnosticReport, ClinicalData } from '../types'; 
 import { SYSTEM_CONFIG, I18N as I18N_CONST } from '../constants';
 import { 
-  Send, Bot, Loader2, Play, Check, Settings2, Share2, Square, Download, UserCheck, CheckCheck, Copy, Zap, User, Camera, Image as ImageIcon, Sparkles, Activity, FileText, FlaskConical, AlertCircle, ShieldAlert
+  Send, Bot, Loader2, Play, Check, Settings2, Share2, Square, Download, UserCheck, CheckCheck, Copy, Zap, User, Camera, Image as ImageIcon, Sparkles, Activity, FileText, FlaskConical, AlertCircle, ShieldAlert,
+  Microscope, Rocket, HelpCircle, ChevronRight, Headphones, Brain, ThermometerSnowflake, Droplets, 
+  Terminal, Cpu, ShieldCheck, BarChart3, Fingerprint, Layers
 } from 'lucide-react';
 
 interface AssistantJoseProps {
@@ -30,13 +30,20 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({ language = 'fr', c
   const [selectedImage, setSelectedImage] = useState<{ data: string; mimeType: string } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   
-  const [persona] = useState<AIPersona>({
-    name: SYSTEM_CONFIG.ai.name,
-    role: SYSTEM_CONFIG.ai.role,
-    philosophy: "La donnée biologique est la vérité. La nutrition cellulaire est la solution.",
-    tonality: "Autorité clinique, précision Stark.",
-    coreValues: "Vérité scientifique, Restauration SAB."
-  });
+  const persona: AIPersona = {
+    name: "JOSÉ IMPERIUM 2026",
+    role: "Architecte en Chef de Restauration Biologique",
+    philosophy: "Protocole NDSA. Restauration de l'autorité cellulaire.",
+    tonality: "Souverain Stark, Expert Clinique, Bienveillance Protectrice.",
+    coreValues: "Standard SAB, Précision Biomédicale, Succès NeoLife."
+  };
+
+  const suggestions = [
+    { label: "Protocole de nutrition cellulaire", prompt: "Explique-moi le Protocole de Nutrition Cellulaire NDSA étape par étape pour restaurer ma vitalité.", icon: FlaskConical },
+    { label: "Opportunité digitale", prompt: "Comment l'opportunité digitale NDSA peut-elle transformer mes revenus et mon futur ?", icon: Rocket },
+    { label: "Loi 37 degrés", prompt: "Explique-moi l'importance vitale de la loi des 37 degrés et le danger des boissons glacées pour mes cellules.", icon: ThermometerSnowflake },
+    { label: "MLM Digital", prompt: "Comment fonctionne le MLM Digital avec l'IA José et le partenariat NeoLife ?", icon: Zap },
+  ];
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -296,6 +303,36 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({ language = 'fr', c
             </div>
           </div>
         ))}
+        
+        {/* Suggestions guidées */}
+        {messages.length === 1 && !isLoading && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-slate-400 text-sm font-medium mb-4">Suggestions pour commencer :</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setInput(suggestion.prompt);
+                    handleSend(suggestion.prompt);
+                  }}
+                  className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#00d4ff]/30 rounded-2xl transition-all group text-left"
+                >
+                  <div className="w-10 h-10 bg-[#00d4ff]/10 rounded-xl flex items-center justify-center group-hover:bg-[#00d4ff]/20 transition-colors">
+                    <suggestion.icon size={20} className="text-[#00d4ff]" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white font-medium text-sm">{suggestion.label}</p>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-400 group-hover:text-[#00d4ff] transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {isLoading && (
           <div className="flex items-center gap-4 px-10 py-5 bg-white/5 border border-white/10 rounded-3xl w-fit animate-pulse">
             <Loader2 className="animate-spin text-[#00d4ff]" size={16} />
