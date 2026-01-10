@@ -8,7 +8,7 @@
 export const NDSA_CORE_CONFIG = {
     FOUNDER: {
         name: "ABADA M. José Gaétan",
-        id: "067/2922111",
+        id: "067-2922111",
         shop: "https://shopneolife.com/startupforworld/shop/atoz"
     },
     ACADEMY_CONTENT: [
@@ -49,19 +49,49 @@ export const getCurrentSponsor = () => {
     const ref = params.get('ref');
     const shop = params.get('shop');
 
+    // Priorité 1: Lien avec shop encodé (lien magique complet)
     if (ref && shop) {
         try {
             const decodedShop = atob(shop);
             if (decodedShop.includes('neolife.com')) {
-                return { id: ref, shop: decodedShop, name: "Ton Partenaire Indépendant" };
+                return { 
+                    id: ref, 
+                    shop: decodedShop, 
+                    name: `Leader ${ref}`,
+                    isReferral: true 
+                };
             }
         } catch (e) {
-            console.warn("Lien mal formé, retour au compte Fondateur.");
+            console.warn("Lien mal formé, analyse du ref simple.");
         }
     }
+
+    // Priorité 2: Lien simple avec ref (parrainage direct)
+    if (ref && ref !== NDSA_CORE_CONFIG.FOUNDER.id) {
+        return {
+            id: ref,
+            shop: `https://shopneolife.com/startupforworld/shop/atoz?id=${ref}`,
+            name: `Leader ${ref}`,
+            isReferral: true
+        };
+    }
+
+    // Priorité 3: Hash ref (fallback)
+    const hashRef = window.location.hash.split('ref=')[1]?.split('&')[0];
+    if (hashRef && hashRef !== NDSA_CORE_CONFIG.FOUNDER.id) {
+        return {
+            id: hashRef,
+            shop: `https://shopneolife.com/startupforworld/shop/atoz?id=${hashRef}`,
+            name: `Leader ${hashRef}`,
+            isReferral: true
+        };
+    }
+
+    // Par défaut: Fondateur
     return { 
         ...NDSA_CORE_CONFIG.FOUNDER, 
-        isFounder: true 
+        isFounder: true,
+        isReferral: false
     };
 };
 
@@ -82,9 +112,29 @@ export const getAIPrompt = (visitorFirstName: string = "mon ami") => {
     `;
 };
 
-export const createMagicLink = (userId: string, userShop: string) => {
+export const createMagicLink = (userId: string, userShop?: string) => {
     const base = window.location.origin;
+    
+    // Lien simple avec ref (recommandé)
+    if (!userShop) {
+        return `${base}?ref=${userId}`;
+    }
+    
+    // Lien complet avec shop encodé (pour compatibilité)
     const cleanShop = userShop.trim();
     const encodedShop = btoa(cleanShop); 
     return `${base}?ref=${userId}&shop=${encodedShop}&mode=welcome`;
+};
+
+// Nouvelle fonction pour créer des liens prospects
+export const createProspectLink = (sellerId: string, prospectId: string) => {
+    const base = window.location.origin;
+    return `${base}?prospect=${prospectId}&ref=${sellerId}`;
+};
+
+// Fonction pour valider un ID NeoLife
+export const validateNeoLifeId = (id: string): boolean => {
+    // Format attendu: XXX-XXXXXXX (3 chiffres, tiret, 7 chiffres)
+    const pattern = /^\d{3}-\d{7}$/;
+    return pattern.test(id);
 };

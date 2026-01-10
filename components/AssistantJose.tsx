@@ -7,6 +7,7 @@ import {
 } from '../services/geminiService';
 import { voiceService } from '../services/voiceService';
 import { storageService } from '../services/storageService';
+import { getCurrentSponsor } from '../services/referralService';
 import { Message, Language, AIPersona, ReferralContext, DiagnosticReport, ClinicalData } from '../types'; 
 import { SYSTEM_CONFIG, I18N as I18N_CONST } from '../constants';
 import { 
@@ -64,13 +65,15 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
       setActiveSpeechKey(isSpeaking ? key : null);
     });
 
-    const params = new URLSearchParams(window.location.search);
-    let refId = params.get('ref') || window.location.hash.split('ref=')[1]?.split('&')[0];
-    const storedRef = refId || sessionStorage.getItem('ndsa_active_ref');
-    
-    if (storedRef && storedRef !== (currentSubscriberId || SYSTEM_CONFIG.founder.id)) {
-      setReferralContext({ referrerId: storedRef, referrerName: `Médecin ${storedRef}`, language: language as Language });
-      sessionStorage.setItem('ndsa_active_ref', storedRef);
+    // Détection du parrainage améliorée
+    const sponsor = getCurrentSponsor();
+    if (sponsor.isReferral && sponsor.id !== (currentSubscriberId || SYSTEM_CONFIG.founder.id)) {
+      setReferralContext({ 
+        referrerId: sponsor.id, 
+        referrerName: sponsor.name, 
+        language: language as Language 
+      });
+      sessionStorage.setItem('ndsa_active_ref', sponsor.id);
     }
 
     if (messages.length === 0) {

@@ -1,4 +1,5 @@
 import { supabase } from './supabaseService';
+import { validateNeoLifeId } from './referralService';
 
 export interface ProspectLead {
   id?: string;
@@ -25,6 +26,11 @@ export interface ShareableLink {
 class ProspectService {
   // Générer un lien de partage unique
   generateShareableLink(referrerId: string, referrerName: string): ShareableLink {
+    // Valider l'ID NeoLife
+    if (!validateNeoLifeId(referrerId)) {
+      throw new Error(`ID NeoLife invalide: ${referrerId}. Format attendu: XXX-XXXXXXX`);
+    }
+
     const linkId = `${referrerId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     return {
