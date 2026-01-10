@@ -18,13 +18,20 @@ import {
 interface AssistantJoseProps {
   language?: Language;
   currentSubscriberId?: string;
+  prospectMode?: boolean;
+  onConversationEnd?: (messages: Message[]) => void;
 }
 
-export const AssistantJose: React.FC<AssistantJoseProps> = ({ language = 'fr', currentSubscriberId }) => {
+export const AssistantJose: React.FC<AssistantJoseProps> = ({ 
+  language = 'fr', 
+  currentSubscriberId,
+  prospectMode = false,
+  onConversationEnd
+}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
+  const [activeSpeechKey, setActiveSpeechKey] = useState<string | null>(null);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [referralContext, setReferralContext] = useState<ReferralContext | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ data: string; mimeType: string } | null>(null);
@@ -53,6 +60,10 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({ language = 'fr', c
   const t = I18N_CONST[language as Language];
 
   useEffect(() => {
+    const unsubVoice = voiceService.subscribe((isSpeaking, key) => {
+      setActiveSpeechKey(isSpeaking ? key : null);
+    });
+
     const params = new URLSearchParams(window.location.search);
     let refId = params.get('ref') || window.location.hash.split('ref=')[1]?.split('&')[0];
     const storedRef = refId || sessionStorage.getItem('ndsa_active_ref');
@@ -65,6 +76,10 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({ language = 'fr', c
     if (messages.length === 0) {
       setMessages([{ id: 'welcome', role: 'model', parts: [{ text: t.welcome + "\n\nEnvoyez-moi une photo de votre bilan sanguin ou d'une ordonnance, je vais décoder votre bio-statut." }], timestamp: new Date(), status: 'read' }]);
     }
+
+    return () => {
+      unsubVoice();
+    };
   }, [language, currentSubscriberId]);
 
   useEffect(() => {

@@ -31,7 +31,7 @@ import {
 type TabType = 'stats' | 'jose' | 'academy' | 'social' | 'finance' | 'admin' | 'profile' | 'history' | 'prospects';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('stats');
+  const [activeTab, setActiveTab] = useState<TabType>('jose');
   const [lang, setLang] = useState<Language>('fr');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBoosting, setIsBoosting] = useState(false);
@@ -42,16 +42,8 @@ const App: React.FC = () => {
   const [syncStatus, setSyncStatus] = useState(99.1);
   const [showLegal, setShowLegal] = useState(false);
   const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false);
-  
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
-  const [showMilestone, setShowMilestone] = useState(false);
-  const [isLevel2Unlocked, setIsLevel2Unlocked] = useState(false);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
-
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const t = I18N[lang];
 
