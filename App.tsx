@@ -47,6 +47,9 @@ const App: React.FC = () => {
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [showMilestone, setShowMilestone] = useState(false);
+  const [isLevel2Unlocked, setIsLevel2Unlocked] = useState(false);
 
   const t = I18N[lang];
 
@@ -398,9 +401,15 @@ const App: React.FC = () => {
            </div>
         </div>
       )}
+      
+      <PasswordResetModal 
+        isOpen={showPasswordReset}
+        onClose={() => setShowPasswordReset(false)}
+        onSuccess={() => setShowPasswordReset(false)}
+      />
     </div>
   );
-};
+}
 
 const DashboardContent = ({ t, stats, myReferralLink, currentUser }: any) => (
     <div className="space-y-12 animate-in fade-in duration-1000">
@@ -461,17 +470,6 @@ const DashboardContent = ({ t, stats, myReferralLink, currentUser }: any) => (
           </section>
         </div>
     </div>
-
-    {/* Modal de reset password */}
-    <PasswordResetModal 
-      isOpen={showPasswordReset}
-      onClose={() => setShowPasswordReset(false)}
-      onSuccess={() => {
-        setShowPasswordReset(false);
-        // L'utilisateur peut maintenant se connecter avec son nouveau mot de passe
-      }}
-    />
-    </div>
-  );
+);
 
 export default App;
