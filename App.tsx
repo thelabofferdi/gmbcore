@@ -471,6 +471,7 @@ const DashboardContent = ({ t, stats, myReferralLink, currentUser }: any) => (
         // L'utilisateur peut maintenant se connecter avec son nouveau mot de passe
       }}
     />
-);
+    </div>
+  );
 
 export default App;
