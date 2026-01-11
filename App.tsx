@@ -59,10 +59,17 @@ const App: React.FC = () => {
       const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
       const error = hashParams.get('error') || queryParams.get('error');
+      const errorCode = hashParams.get('error_code') || queryParams.get('error_code');
       const type = hashParams.get('type') || queryParams.get('type');
       
       if (error) {
-        console.error('Erreur auth:', error);
+        console.error('Erreur auth:', error, errorCode);
+        
+        // Si c'est un lien expiré, afficher un message informatif
+        if (errorCode === 'otp_expired') {
+          alert('Le lien a expiré. Veuillez demander un nouveau lien de connexion.');
+        }
+        
         // Nettoyer l'URL et afficher un message d'erreur
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
@@ -114,7 +121,8 @@ const App: React.FC = () => {
 
     // Vérifier s'il y a des paramètres d'auth dans l'URL
     if (window.location.hash.includes('access_token') || window.location.search.includes('access_token') || 
-        window.location.hash.includes('error=') || window.location.search.includes('error=')) {
+        window.location.hash.includes('error=') || window.location.search.includes('error=') ||
+        window.location.pathname.includes('/reset-password')) {
       handleAuthCallback();
     }
   }, []);
