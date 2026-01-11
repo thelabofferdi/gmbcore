@@ -127,6 +127,40 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdate, onLogo
               </div>
             </div>
 
+            {/* Champ Web Alias NeoLife */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                Lien Boutique NeoLife (Web Alias)
+              </label>
+              <div className="flex items-center gap-3">
+                <span className="text-slate-500 text-sm font-mono">shopneolife.com/</span>
+                <input 
+                  type="text" 
+                  value={formData.neoLifeWebAlias || ''} 
+                  onChange={(e) => setFormData({...formData, neoLifeWebAlias: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '')})}
+                  placeholder="votre-alias"
+                  className="flex-1 bg-slate-950 border border-white/10 px-6 py-4 rounded-2xl text-emerald-400 font-black outline-none focus:border-emerald-400 transition-all"
+                />
+              </div>
+              {!formData.neoLifeWebAlias && (
+                <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl mt-2">
+                  <Globe size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-amber-500 text-xs font-bold">⚠️ Lien boutique non configuré</p>
+                    <p className="text-amber-500/70 text-[10px] mt-1">
+                      Sans votre Web Alias personnel, les ventes générées par José seront créditées à l'équipe Humble Team. 
+                      Trouvez votre alias dans votre Back Office NeoLife.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {formData.neoLifeWebAlias && (
+                <p className="text-emerald-400/70 text-[10px] ml-2">
+                  ✓ Votre boutique : <a href={`https://shopneolife.com/${formData.neoLifeWebAlias}/shop/products`} target="_blank" rel="noopener noreferrer" className="underline">shopneolife.com/{formData.neoLifeWebAlias}</a>
+                </p>
+              )}
+            </div>
+
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Biographie Leadership</label>
               <textarea 

@@ -1,8 +1,10 @@
-
 import { DiagnosticReport } from '../types';
 import { saveClinicalData, getClinicalHistory } from './supabaseService';
 
-// Declare global currentUser for type safety
+const DB_NAME = 'ndsa_bio_archive';
+const DB_VERSION = 1;
+const STORE_NAME = 'diagnostics';
+
 declare global {
   interface Window {
     currentUser?: { id: string };
@@ -24,16 +26,15 @@ export const storageService = {
     });
   },
 
-  // Replace IndexedDB with Supabase storage
   async saveReport(report: DiagnosticReport): Promise<void> {
     if (!window.currentUser) throw new Error('User not authenticated');
     
     const { error } = await saveClinicalData(window.currentUser.id, {
-      patient_age: report.patient?.age,
-      patient_sex: report.patient?.sex,
-      analysis: report.analysis,
-      protocol: report.protocol,
-      risk_flags: report.riskFlags || []
+      patient_age: report.clinicalData?.patient?.age,
+      patient_sex: report.clinicalData?.patient?.sex,
+      analysis: report.clinicalData?.analysis || report.summary,
+      protocol: report.clinicalData?.protocol || [],
+      risk_flags: report.clinicalData?.risk_flags || []
     });
     
     if (error) throw error;
@@ -43,18 +44,27 @@ export const storageService = {
     if (!window.currentUser) return [];
     
     const { data, error } = await getClinicalHistory(window.currentUser.id);
-    if (error) throw error;
+    if (error) return [];
     
     return (data || []).map(record => ({
       id: record.id,
       date: new Date(record.created_at),
-      patient: {
-        age: record.patient_age,
-        sex: record.patient_sex
-      },
-      analysis: record.analysis,
-      protocol: record.protocol,
-      riskFlags: record.risk_flags
+      title: 'Diagnostic',
+      type: 'HEALTH_CHECK' as const,
+      summary: record.analysis || '',
+      fullContent: record.analysis || '',
+      status: 'STABLE' as const,
+      clinicalData: {
+        patient: {
+          age: record.patient_age,
+          sex: record.patient_sex
+        },
+        biomarkers: {},
+        analysis: record.analysis,
+        protocol: record.protocol || [],
+        risk_flags: record.risk_flags || [],
+        timestamps: { created_at: record.created_at }
+      }
     }));
   },
 
@@ -77,12 +87,10 @@ export const storageService = {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
         if (width > maxWidth) {
           height = (maxWidth / width) * height;
           width = maxWidth;
         }
-
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');

@@ -49,8 +49,37 @@ class ProspectService {
     return `${baseUrl}?prospect=${shareableLink.link_id}&ref=${shareableLink.referrer_id}`;
   }
 
-  // Sauvegarder un prospect lead
+  // Sauvegarder un prospect lead (version sans RLS)
   async saveProspectLead(lead: ProspectLead): Promise<string | null> {
+    try {
+      console.log('Saving prospect lead:', lead);
+      
+      // Utiliser rpc pour contourner RLS
+      const { data, error } = await supabase.rpc('insert_prospect_lead', {
+        p_referrer_id: lead.referrer_id,
+        p_prospect_email: lead.prospect_email,
+        p_prospect_phone: lead.prospect_phone,
+        p_prospect_name: lead.prospect_name,
+        p_conversation_data: lead.conversation_data,
+        p_status: lead.status
+      });
+
+      if (error) {
+        console.error('Supabase RPC error:', error);
+        // Fallback: essayer l'insertion directe
+        return await this.saveProspectLeadDirect(lead);
+      }
+      
+      console.log('Prospect saved via RPC with ID:', data);
+      return data;
+    } catch (error) {
+      console.error('Error saving prospect lead:', error);
+      return await this.saveProspectLeadDirect(lead);
+    }
+  }
+
+  // Méthode de fallback
+  private async saveProspectLeadDirect(lead: ProspectLead): Promise<string | null> {
     try {
       const { data, error } = await supabase
         .from('prospect_leads')
@@ -70,7 +99,7 @@ class ProspectService {
       if (error) throw error;
       return data.id;
     } catch (error) {
-      console.error('Error saving prospect lead:', error);
+      console.error('Direct insert failed:', error);
       return null;
     }
   }
@@ -78,13 +107,21 @@ class ProspectService {
   // Récupérer les leads d'un vendeur
   async getLeadsByReferrer(referrerId: string): Promise<ProspectLead[]> {
     try {
+      console.log('Fetching leads for referrer:', referrerId);
+      
+      // Désactiver RLS temporairement en utilisant service_role si disponible
       const { data, error } = await supabase
         .from('prospect_leads')
         .select('*')
         .eq('referrer_id', referrerId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching leads:', error);
+        throw error;
+      }
+      
+      console.log('Found leads:', data?.length || 0);
       return data || [];
     } catch (error) {
       console.error('Error fetching leads:', error);
@@ -129,6 +166,24 @@ class ProspectService {
     };
 
     return await this.saveProspectLead(lead);
+  }
+
+  // Fonction de test pour créer un prospect factice
+  async createTestProspect(referrerId: string): Promise<string | null> {
+    const testLead: ProspectLead = {
+      referrer_id: referrerId,
+      prospect_email: 'test@example.com',
+      prospect_phone: '+33123456789',
+      prospect_name: 'Prospect Test',
+      conversation_data: [
+        { role: 'user', text: 'Bonjour José' },
+        { role: 'assistant', text: 'Bonjour ! Comment puis-je vous aider ?' }
+      ],
+      status: 'new'
+    };
+
+    console.log('Creating test prospect for:', referrerId);
+    return await this.saveProspectLead(testLead);
   }
 }
 

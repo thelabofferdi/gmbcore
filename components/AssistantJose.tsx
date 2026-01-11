@@ -3,7 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   generateJoseResponseStream, 
   generateBiologicalVisualization,
-  analyzeClinicalData 
+  analyzeClinicalData,
+  generateJoseAudio,
+  decodeBase64,
+  decodeAudioData
 } from '../services/geminiService';
 import { voiceService } from '../services/voiceService';
 import { storageService } from '../services/storageService';
@@ -20,6 +23,7 @@ import {
 interface AssistantJoseProps {
   language?: Language;
   currentSubscriberId?: string;
+  currentUserWebAlias?: string; // Web Alias NeoLife de l'utilisateur
   prospectMode?: boolean;
   onConversationEnd?: (messages: Message[]) => void;
 }
@@ -27,6 +31,7 @@ interface AssistantJoseProps {
 export const AssistantJose: React.FC<AssistantJoseProps> = ({ 
   language = 'fr', 
   currentSubscriberId,
+  currentUserWebAlias,
   prospectMode = false,
   onConversationEnd
 }) => {
@@ -40,6 +45,9 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [groundingSources, setGroundingSources] = useState<any[]>([]);
   const [isExporting, setIsExporting] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
+  const [globalAudioContext, setGlobalAudioContext] = useState<AudioContext | null>(null);
+  const [globalAudioSource, setGlobalAudioSource] = useState<AudioBufferSourceNode | null>(null);
   
   const persona: AIPersona = {
     name: SYSTEM_CONFIG.ai.name,
@@ -57,11 +65,70 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
   ];
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const t = I18N_CONST[language as Language];
+
+  // Fonction globale pour arrêter tout audio
+  const stopAllAudio = () => {
+    if (globalAudioSource) {
+      try { 
+        globalAudioSource.stop(); 
+      } catch (e) {}
+      setGlobalAudioSource(null);
+    }
+    setIsSpeaking(null);
+  };
+
+  // Fonction TTS optimisée - une seule instance
+  const handleAudio = async (text: string, messageId: string) => {
+    // Arrêter tout audio en cours
+    stopAllAudio();
+    
+    // Si c'est le même message, juste arrêter
+    if (isSpeaking === messageId) return;
+
+    // Limiter la longueur du texte pour TTS (max 500 caractères)
+    const truncatedText = text.length > 500 ? text.substring(0, 500) + "..." : text;
+    
+    setIsSpeaking(messageId);
+
+    try {
+      const base64 = await generateJoseAudio(truncatedText, language as Language);
+      if (!base64) {
+        setIsSpeaking(null);
+        return;
+      }
+
+      // Initialiser le contexte audio global si nécessaire
+      if (!globalAudioContext) {
+        const context = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        setGlobalAudioContext(context);
+      }
+
+      if (globalAudioContext && globalAudioContext.state === 'suspended') {
+        await globalAudioContext.resume();
+      }
+
+      const decoded = decodeBase64(base64);
+      const audioBuffer = await decodeAudioData(decoded, globalAudioContext!, 24000, 1);
+      const source = globalAudioContext!.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(globalAudioContext!.destination);
+      
+      setGlobalAudioSource(source);
+      source.start();
+      
+      source.onended = () => {
+        setIsSpeaking(null);
+        setGlobalAudioSource(null);
+      };
+
+    } catch (error) {
+      console.error('Erreur TTS:', error);
+      setIsSpeaking(null);
+    }
+  };
 
   useEffect(() => {
     const unsubVoice = voiceService.subscribe((isSpeaking, key) => {
@@ -200,15 +267,24 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
         clinicalData = await analyzeClinicalData(currentImg);
       }
 
-      const stream = await generateJoseResponseStream(
+      // Timeout de 5 secondes pour éviter le chargement infini
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: José ne répond pas')), 5000)
+      );
+
+      const responsePromise = generateJoseResponseStream(
         userMsg.parts[0].text, 
         messages, 
         referralContext, 
         language as Language, 
         persona, 
         currentSubscriberId,
-        currentImg
+        currentImg,
+        currentUserWebAlias,
+        prospectMode
       );
+
+      const stream = await Promise.race([responsePromise, timeoutPromise]);
       
       setIsScanning(false);
       let aiMsgId = 'ai_' + Date.now();
@@ -231,6 +307,20 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
     } catch (error) {
       console.error(error);
       setIsScanning(false);
+      
+      const errorMessage = error instanceof Error && error.message.includes('Timeout') 
+        ? 'José ne répond pas. Essayez de reformuler votre question.'
+        : 'Erreur de connexion. Vérifiez votre réseau.';
+      
+      const webAlias = currentUserWebAlias || SYSTEM_CONFIG.founder.webAlias || 'startupforworld';
+      
+      setMessages(prev => [...prev, { 
+        id: 'error_' + Date.now(),
+        role: 'model', 
+        parts: [{ text: `❌ ${errorMessage}\n\n🛒 En attendant, découvrez nos produits : https://shopneolife.com/${webAlias}/shop` }],
+        timestamp: new Date(),
+        status: 'read'
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -252,35 +342,8 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
     setIsLoading(false);
   };
 
-  const stopAudio = () => {
-    if (activeSourceRef.current) {
-      try { activeSourceRef.current.stop(); } catch (e) {}
-      activeSourceRef.current = null;
-    }
-    setIsSpeaking(null);
-  };
-
-  const handleAudio = async (text: string, id: string) => {
-    if (isSpeaking === id) { stopAudio(); return; }
-    stopAudio();
-    const base64 = await generateJoseAudio(text, language as Language);
-    if (base64) {
-      if (!audioContextRef.current) audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
-      const decoded = decodeBase64(base64);
-      const audioBuffer = await decodeAudioData(decoded, audioContextRef.current, 24000, 1);
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      activeSourceRef.current = source;
-      setIsSpeaking(id);
-      source.start();
-      source.onended = () => setIsSpeaking(null);
-    }
-  };
-
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] bg-slate-950/60 backdrop-blur-3xl rounded-[3rem] border border-white/10 overflow-hidden shadow-3xl relative">
+    <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-140px)] min-h-[600px] bg-slate-950/60 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-3xl relative">
       {isScanning && (
         <div className="absolute inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-300">
            <div className="text-center space-y-6">
@@ -302,36 +365,41 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
         </div>
       )}
 
-      <div className="bg-slate-900/80 p-8 flex items-center justify-between border-b border-white/5 z-50">
-        <div className="flex items-center gap-6">
-          <div className="w-12 h-12 bg-[#00d4ff]/10 rounded-xl flex items-center justify-center border border-[#00d4ff]/20 relative">
-            <Bot size={28} className="text-[#00d4ff]" />
-            {isLoading && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-[#00d4ff]"></span></span>}
+      <div className="bg-slate-900/80 p-4 md:p-8 flex items-center justify-between border-b border-white/5 z-50">
+        <div className="flex items-center gap-3 md:gap-6">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-[#00d4ff]/10 rounded-lg md:rounded-xl flex items-center justify-center border border-[#00d4ff]/20 relative">
+            <Bot size={18} className="text-[#00d4ff] md:hidden" />
+            <Bot size={28} className="text-[#00d4ff] hidden md:block" />
+            {isLoading && <span className="absolute -top-1 -right-1 flex h-2 w-2 md:h-3 md:w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d4ff] opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 md:h-3 md:w-3 bg-[#00d4ff]"></span></span>}
           </div>
-          <div>
-            <h2 className="font-bold text-xl text-white tracking-tight italic uppercase">{persona.name}</h2>
-            <p className="text-[10px] text-[#00d4ff] font-black uppercase tracking-widest opacity-60">STARK BIO-INTELLIGENCE</p>
+          <div className="hidden md:block">
+            <h2 className="font-bold text-lg md:text-xl text-white tracking-tight italic uppercase">{persona.name}</h2>
+            <p className="text-[9px] md:text-[10px] text-[#00d4ff] font-black uppercase tracking-widest opacity-60">STARK BIO-INTELLIGENCE</p>
+          </div>
+          <div className="md:hidden">
+            <h2 className="font-bold text-sm text-white tracking-tight italic uppercase">{persona.name}</h2>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 md:gap-2">
           <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Analyseur Actif</span>
           </div>
-          <button onClick={handleVisualize} title="Générer une vision bio" className="p-3 bg-white/5 text-amber-400 border border-amber-400/20 rounded-xl hover:bg-amber-400/10 transition-all"><Sparkles size={20} /></button>
-          <button onClick={() => setShowShareMenu(!showShareMenu)} className={`p-3 rounded-xl border transition-all ${showShareMenu ? 'bg-[#00d4ff] text-slate-950' : 'bg-white/5 text-slate-400 border-white/10'}`}><Share2 size={20} /></button>
+          <button onClick={handleVisualize} title="Générer une vision bio" className="p-2 md:p-3 bg-white/5 text-amber-400 border border-amber-400/20 rounded-lg md:rounded-xl hover:bg-amber-400/10 transition-all"><Sparkles size={16} className="md:hidden" /><Sparkles size={20} className="hidden md:block" /></button>
+          <button onClick={() => setShowShareMenu(!showShareMenu)} className={`p-2 md:p-3 rounded-lg md:rounded-xl border transition-all ${showShareMenu ? 'bg-[#00d4ff] text-slate-950' : 'bg-white/5 text-slate-400 border-white/10'}`}><Share2 size={16} className="md:hidden" /><Share2 size={20} className="hidden md:block" /></button>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-8 no-scrollbar scroll-smooth">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 md:p-10 space-y-4 md:space-y-8 no-scrollbar scroll-smooth">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`}>
-            <div className={`flex gap-4 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${msg.role === 'user' ? 'bg-slate-800 border-white/10' : 'bg-[#00d4ff]/20 border-[#00d4ff]/30'}`}>
-                 {msg.role === 'user' ? <User size={16} className="text-white" /> : <Bot size={16} className="text-[#00d4ff]" />}
+            <div className={`flex gap-2 md:gap-4 max-w-[95%] md:max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg flex items-center justify-center shrink-0 border ${msg.role === 'user' ? 'bg-slate-800 border-white/10' : 'bg-[#00d4ff]/20 border-[#00d4ff]/30'}">
+                 {msg.role === 'user' ? <User size={12} className="text-white md:hidden" /> : <Bot size={12} className="text-[#00d4ff] md:hidden" />}
+                 {msg.role === 'user' ? <User size={16} className="text-white hidden md:block" /> : <Bot size={16} className="text-[#00d4ff] hidden md:block" />}
               </div>
               <div className="flex flex-col">
-                <div className={`p-6 rounded-[2rem] border backdrop-blur-md shadow-2xl ${msg.role === 'user' ? 'bg-[#00d4ff]/10 border-[#00d4ff]/20 text-white rounded-tr-none' : 'bg-white/5 border-white/10 text-slate-200 rounded-tl-none'}`}>
+                <div className={`p-3 md:p-6 rounded-xl md:rounded-[2rem] border backdrop-blur-md shadow-2xl ${msg.role === 'user' ? 'bg-[#00d4ff]/10 border-[#00d4ff]/20 text-white rounded-tr-none' : 'bg-white/5 border-white/10 text-slate-200 rounded-tl-none'}`}>
                   {msg.parts[0].text.startsWith('![Bio-Viz]') ? (
                     <div className="space-y-4">
                       <img src={msg.parts[0].text.match(/\((.*?)\)/)?.[1]} alt="Bio Visualization" className="rounded-2xl border border-white/10 w-full" />
@@ -347,7 +415,7 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
                             </p>
                          </div>
                        )}
-                       <p className="leading-relaxed text-[15px] font-medium whitespace-pre-line">{msg.parts[0].text}</p>
+                       <p className="leading-relaxed text-sm md:text-[15px] font-medium whitespace-pre-line">{msg.parts[0].text}</p>
                        {msg.role === 'model' && msg.parts[0].text.length > 100 && (
                          <div className="flex gap-2 mt-4 pt-4 border-t border-white/10">
                            <button
@@ -383,8 +451,46 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
           </div>
         ))}
         
-        {/* Suggestions guidées */}
-        {messages.length === 1 && !isLoading && (
+        {/* Message de bienvenue GMB CORE OS pour prospects */}
+        {messages.length === 1 && !isLoading && prospectMode && (
+          <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-700">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#00d4ff]/10 border border-[#00d4ff]/30 rounded-full">
+                <div className="w-3 h-3 rounded-full bg-[#00d4ff] animate-pulse"></div>
+                <span className="text-[#00d4ff] font-black text-xs uppercase tracking-[0.3em]">GMB CORE OS ACTIVÉ</span>
+              </div>
+              <h1 className="text-xl md:text-3xl font-black text-white leading-tight">
+                BIENVENUE DANS L'ÉCOSYSTÈME<br />
+                <span className="text-[#00d4ff]">GMB CORE OS</span>
+              </h1>
+              <p className="text-slate-300 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Votre corps est une machine biologique, votre business est un système numérique.<br />
+                <span className="text-[#00d4ff] font-semibold">Nous optimisons les deux.</span>
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setInput("Je veux démarrer mon analyse santé et business complète avec Coach José");
+                  handleSend();
+                }}
+                className="group relative px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] text-slate-950 font-black text-sm md:text-lg uppercase tracking-wider rounded-xl md:rounded-2xl shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6)] transition-all duration-300 border-2 border-amber-400/50 hover:border-amber-400 transform hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-amber-500/20 rounded-2xl blur-sm group-hover:blur-none transition-all"></div>
+                <span className="relative flex items-center gap-2 md:gap-3">
+                  <Rocket size={18} className="md:hidden" />
+                  <Rocket size={24} className="hidden md:block" />
+                  <span className="hidden sm:inline">DÉMARRER MON ANALYSE SANTÉ & BUSINESS</span>
+                  <span className="sm:hidden">DÉMARRER L'ANALYSE</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Suggestions normales pour utilisateurs connectés */}
+        {messages.length === 1 && !isLoading && !prospectMode && (
           <div className="space-y-4">
             <div className="text-center">
               <p className="text-slate-400 text-sm font-medium mb-4">Suggestions pour commencer :</p>
@@ -420,7 +526,7 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
         )}
       </div>
 
-      <div className="p-8 bg-slate-900/60 border-t border-white/10 space-y-4">
+      <div className="p-3 md:p-8 bg-slate-900/60 border-t border-white/10 space-y-3 md:space-y-4">
         {selectedImage && (
           <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl w-fit animate-in slide-in-from-bottom-2 border border-white/10">
             <div className="relative group">
@@ -438,17 +544,17 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
             </div>
           </div>
         )}
-        <div className="flex gap-4 max-w-4xl mx-auto bg-slate-950/60 p-3 rounded-[2rem] border border-white/10 focus-within:border-[#00d4ff]/40 transition-all shadow-inner group">
-          <button onClick={() => fileInputRef.current?.click()} title="Envoyer un bilan ou ordonnance" className="p-4 text-slate-400 hover:text-[#00d4ff] transition-colors"><ImageIcon size={24} /></button>
+        <div className="flex gap-2 md:gap-4 max-w-4xl mx-auto bg-slate-950/60 p-2 md:p-3 rounded-[1.5rem] md:rounded-[2rem] border border-white/10 focus-within:border-[#00d4ff]/40 transition-all shadow-inner group">
+          <button onClick={() => fileInputRef.current?.click()} title="Envoyer un bilan ou ordonnance" className="p-2 md:p-4 text-slate-400 hover:text-[#00d4ff] transition-colors"><ImageIcon size={18} className="md:hidden" /><ImageIcon size={20} className="hidden md:block" /></button>
           <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleImageSelect} />
           <input 
             value={input} 
             onChange={(e) => setInput(e.target.value)} 
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder={`Posez une question ou envoyez un document médical...`} 
-            className="flex-1 bg-transparent border-none px-4 py-4 text-white placeholder-slate-700 outline-none font-medium text-lg"
+            className="flex-1 bg-transparent border-none px-2 md:px-4 py-2 md:py-4 text-white placeholder-slate-700 outline-none font-medium text-sm md:text-lg"
           />
-          <button onClick={() => handleSend()} disabled={isLoading || (!input.trim() && !selectedImage)} className="w-14 h-14 rounded-2xl bg-[#00d4ff] text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:brightness-110 disabled:opacity-50 transition-all active:scale-95"><Send size={24} /></button>
+          <button onClick={() => handleSend()} disabled={isLoading || (!input.trim() && !selectedImage)} className="w-10 h-10 md:w-14 md:h-14 rounded-lg md:rounded-2xl bg-[#00d4ff] text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:brightness-110 disabled:opacity-50 transition-all active:scale-95"><Send size={16} className="md:hidden" /><Send size={20} className="hidden md:block" /></button>
         </div>
         <div className="flex items-center justify-center gap-2 text-[9px] font-black text-slate-600 uppercase tracking-widest italic">
           <AlertCircle size={10} /> José analyse mais ne remplace pas votre médecin.

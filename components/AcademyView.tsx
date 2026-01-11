@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SYSTEM_CONFIG } from '../constants';
 import { Lesson, AcademyModule, Message, Resource } from '../types';
 import { voiceService } from '../services/voiceService';
-import { generateJoseResponseStream } from '../services/geminiService';
+import { generateJoseResponseStream, generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
 import { jsPDF } from 'jspdf';
 import { 
   BookOpen, ChevronRight, PlayCircle, Search, Lock, 

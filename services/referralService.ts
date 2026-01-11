@@ -5,9 +5,36 @@
  * Fondateur : ABADA M. José Gaétan
  */
 
+// GMB CORE OS - SYNC PROTOCOL (Système Multi-Distributeurs)
+const enhanceUrlTracking = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  let distributorID = urlParams.get('ref') || urlParams.get('prospect');
+
+  if (distributorID) {
+    // Parrain identifié via lien affilié
+    localStorage.setItem('gmb_ref_id', distributorID);
+    localStorage.setItem('gmb_referral_source', 'affiliate_link');
+  } else {
+    // Pas de parrain → Vente va au propriétaire de cette instance GMB CORE OS
+    distributorID = localStorage.getItem('gmb_ref_id') || "067-2922111"; // ID Propriétaire de cette instance
+    if (!localStorage.getItem('gmb_ref_id')) {
+      localStorage.setItem('gmb_referral_source', 'direct_traffic');
+    }
+  }
+  
+  return distributorID;
+};
+
 export const NDSA_CORE_CONFIG = {
-    FOUNDER: {
+    // Configuration de cette instance GMB CORE OS
+    INSTANCE_OWNER: {
         name: "ABADA M. José Gaétan",
+        id: "067-2922111", // ID du propriétaire de cette instance
+        shop: "https://shopneolife.com/startupforworld/shop/atoz",
+        note: "Toutes les ventes sans parrain vont à ce distributeur"
+    },
+    FOUNDER: {
+        name: "ABADA M. José Gaétan", // Créateur du système GMB CORE OS
         id: "067-2922111",
         shop: "https://shopneolife.com/startupforworld/shop/atoz"
     },
@@ -45,8 +72,11 @@ export const NDSA_CORE_CONFIG = {
 };
 
 export const getCurrentSponsor = () => {
+    // Amélioration: Support des nouveaux paramètres + localStorage
+    const enhancedID = enhanceUrlTracking();
+    
     const params = new URLSearchParams(window.location.search);
-    const ref = params.get('ref');
+    const ref = params.get('ref') || params.get('prospect');
     const shop = params.get('shop');
 
     // Priorité 1: Lien avec shop encodé (lien magique complet)
@@ -67,31 +97,37 @@ export const getCurrentSponsor = () => {
     }
 
     // Priorité 2: Lien simple avec ref (parrainage direct)
-    if (ref && ref !== NDSA_CORE_CONFIG.FOUNDER.id) {
+    if (ref && ref !== NDSA_CORE_CONFIG.INSTANCE_OWNER.id) {
         return {
             id: ref,
             shop: `https://shopneolife.com/startupforworld/shop/atoz?id=${ref}`,
             name: `Leader ${ref}`,
-            isReferral: true
+            isReferral: true,
+            source: 'affiliate_link'
         };
     }
 
     // Priorité 3: Hash ref (fallback)
     const hashRef = window.location.hash.split('ref=')[1]?.split('&')[0];
-    if (hashRef && hashRef !== NDSA_CORE_CONFIG.FOUNDER.id) {
+    if (hashRef && hashRef !== NDSA_CORE_CONFIG.INSTANCE_OWNER.id) {
         return {
             id: hashRef,
             shop: `https://shopneolife.com/startupforworld/shop/atoz?id=${hashRef}`,
             name: `Leader ${hashRef}`,
-            isReferral: true
+            isReferral: true,
+            source: 'hash_referral'
         };
     }
 
-    // Par défaut: Fondateur
-    return { 
-        ...NDSA_CORE_CONFIG.FOUNDER, 
-        isFounder: true,
-        isReferral: false
+    // Par défaut: Propriétaire de cette instance GMB CORE OS
+    const instanceOwner = NDSA_CORE_CONFIG.INSTANCE_OWNER;
+    return {
+        id: instanceOwner.id,
+        shop: instanceOwner.shop,
+        name: instanceOwner.name,
+        isReferral: false,
+        source: 'direct_traffic',
+        note: 'Vente attribuée au propriétaire de cette instance'
     };
 };
 

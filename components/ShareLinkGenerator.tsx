@@ -62,12 +62,24 @@ export const ShareLinkGenerator: React.FC<ShareLinkGeneratorProps> = ({ currentU
         </p>
 
         <div className="space-y-4">
-          <button
-            onClick={generateLink}
-            className="bg-[#00d4ff] hover:bg-[#00d4ff]/80 text-black px-6 py-3 rounded-2xl font-bold transition-colors"
-          >
-            Générer Lien Prospect
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={generateLink}
+              className="bg-[#00d4ff] hover:bg-[#00d4ff]/80 text-black px-6 py-3 rounded-2xl font-bold transition-colors"
+            >
+              Générer Lien Prospect
+            </button>
+            
+            <button
+              onClick={async () => {
+                await prospectService.createTestProspect(currentUser.neoLifeId);
+                loadLeads();
+              }}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-2xl font-bold transition-colors text-sm"
+            >
+              Test Prospect
+            </button>
+          </div>
 
           {shareLink && (
             <div className="flex gap-2">

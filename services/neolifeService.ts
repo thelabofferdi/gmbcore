@@ -119,26 +119,19 @@ class NeoLifeAPIService {
     return products;
   }
 
-  // Générer l'URL de commande avec tracking vendeur
-  generateOrderUrl(products: string[], sellerId: string, customerInfo?: any): string {
-    const baseUrl = 'https://shopneolife.com/startupforworld/shop/atoz';
-    const params = new URLSearchParams({
-      id: sellerId, // ID du vendeur pour commission
-      products: products.join(','),
-      source: 'axioma-ai', // Tracking source
-      ...(customerInfo && { customer: JSON.stringify(customerInfo) })
-    });
-    
-    return `${baseUrl}?${params.toString()}`;
+  // Générer l'URL de la boutique avec le Web Alias du distributeur
+  generateShopUrl(webAlias: string): string {
+    return `https://shopneolife.com/${webAlias}/shop/products`;
   }
 
-  // Créer un lien de commande directe depuis les recommandations
-  createDirectOrderLink(recommendations: ProductRecommendation[], sellerId: string): string {
-    const skus = recommendations.map(rec => rec.product.sku);
-    return this.generateOrderUrl(skus, sellerId, {
-      recommended_by: 'jose-ai',
-      analysis_date: new Date().toISOString()
-    });
+  // Générer le lien boutique du distributeur
+  getDistributorShopUrl(webAlias: string): string {
+    return `https://shopneolife.com/${webAlias}/shop/products`;
+  }
+
+  // Créer un lien de commande directe
+  createDirectOrderLink(webAlias: string): string {
+    return `https://shopneolife.com/${webAlias}/shop/products`;
   }
 
   private mapToNeoLifeProduct(apiProduct: any, categoryData: any): NeoLifeProduct {

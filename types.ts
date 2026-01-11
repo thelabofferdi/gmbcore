@@ -25,6 +25,7 @@ export interface AuthUser {
   name: string;
   email: string;
   neoLifeId: string;
+  neoLifeWebAlias?: string; // Web Alias pour la boutique NeoLife (ex: "startupforworld")
   role: 'LEADER' | 'ADMIN' | 'PROSPECT';
   avatar?: string;
   bio?: string;
@@ -137,3 +138,5 @@ export interface WhiteLabelInstance {
   deploymentDate: Date;
   status: 'ACTIVE' | 'PENDING' | 'LOCKED';
 }
+
+export type TabType = 'stats' | 'jose' | 'academy' | 'social' | 'finance' | 'admin' | 'profile' | 'history';

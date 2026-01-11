@@ -86,7 +86,8 @@ export const SYSTEM_CONFIG = {
   founder: {
     name: "ABADA M. José Gaétan",
     id: "067-2922111",
-    officialShopUrl: "https://shopneolife.com/startupforworld/shop/atoz",
+    webAlias: "startupforworld",
+    officialShopUrl: "https://shopneolife.com/startupforworld/shop/products",
     status: "Fondateur Visionnaire"
   },
   legal: {

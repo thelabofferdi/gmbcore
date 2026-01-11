@@ -1,7 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SYSTEM_CONFIG } from '../constants';
-import { PricingZone } from '../types';
+import { PricingZone, AuthUser } from '../types';
+import { getDashboardStats, DashboardStats } from '../services/statsService';
 import { 
   Wallet, 
   TrendingUp, 
@@ -23,11 +24,29 @@ import {
 } from 'lucide-react';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
 
-export const FinanceView: React.FC = () => {
+export const FinanceView: React.FC<{ currentUser?: AuthUser }> = ({ currentUser }) => {
   const [copied, setCopied] = React.useState<string | null>(null);
   const [isReading, setIsReading] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!currentUser) return;
+      setLoading(true);
+      try {
+        const dashboardStats = await getDashboardStats(currentUser.id);
+        setStats(dashboardStats);
+      } catch (error) {
+        console.error('Error loading finance stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStats();
+  }, [currentUser]);
 
   const stopAudio = () => {
     if (activeSourceRef.current) {
@@ -109,7 +128,9 @@ export const FinanceView: React.FC = () => {
             <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 uppercase">SaaS Rev</span>
           </div>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Abonnements Plateforme</p>
-          <h3 className="text-3xl font-black text-slate-900 mt-2">$1,280.00</h3>
+          <h3 className="text-3xl font-black text-slate-900 mt-2">
+            {loading ? '...' : `$${stats?.subscriptionMRR || 0}`}
+          </h3>
           <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase">Mensuel Récurrent (MRR)</p>
         </div>
 
@@ -122,7 +143,9 @@ export const FinanceView: React.FC = () => {
             <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 uppercase">MLM Vol</span>
           </div>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Volume NeoLife (PV/BV)</p>
-          <h3 className="text-3xl font-black text-slate-900 mt-2">$3,452.12</h3>
+          <h3 className="text-3xl font-black text-slate-900 mt-2">
+            {loading ? '...' : `$${stats?.salesVolume || 0}`}
+          </h3>
           <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase">Généré via José & Shop</p>
         </div>
 
@@ -135,7 +158,9 @@ export const FinanceView: React.FC = () => {
             <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 uppercase">Comm %</span>
           </div>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Commissions Directes</p>
-          <h3 className="text-3xl font-black text-slate-900 mt-2">$256.00</h3>
+          <h3 className="text-3xl font-black text-slate-900 mt-2">
+            {loading ? '...' : `$${stats?.commissions || 0}`}
+          </h3>
           <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase">Affiliation Plateforme</p>
         </div>
 
@@ -145,8 +170,10 @@ export const FinanceView: React.FC = () => {
             <Wallet size={80} />
           </div>
           <div>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Solde Moneroo</p>
-            <h3 className="text-3xl font-black text-[#FFD700] mt-2">$452.80</h3>
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Solde Disponible</p>
+            <h3 className="text-3xl font-black text-[#FFD700] mt-2">
+              {loading ? '...' : `$${((stats?.commissions || 0) + (stats?.subscriptionMRR || 0) * 0.3).toFixed(2)}`}
+            </h3>
           </div>
           <button className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/30">
             Retirer mes gains
