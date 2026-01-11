@@ -46,6 +46,7 @@ const App: React.FC = () => {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const t = I18N[lang];
 
