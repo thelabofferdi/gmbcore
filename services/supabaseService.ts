@@ -37,6 +37,16 @@ export const resetPassword = async (email: string) => {
   return { data, error }
 }
 
+export const signInWithMagicLink = async (email: string) => {
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}`
+    }
+  })
+  return { data, error }
+}
+
 export const getCurrentUser = () => {
   return supabase.auth.getUser()
 }

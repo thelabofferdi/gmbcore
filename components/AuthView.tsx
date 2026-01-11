@@ -4,7 +4,7 @@ import { Fingerprint, Loader2, ShieldCheck, Zap, Layers, Volume2, Square } from 
 import { AuthUser } from '../types';
 import { SYSTEM_CONFIG } from '../constants';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
-import { signIn, signUp, resetPassword } from '../services/supabaseService';
+import { signIn, signUp, resetPassword, signInWithMagicLink } from '../services/supabaseService';
 
 interface AuthViewProps {
   onLogin: (user: AuthUser) => void;
@@ -18,6 +18,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
+  const [isMagicLinkMode, setIsMagicLinkMode] = useState(false);
 
   const audioContextRef = React.useRef<AudioContext | null>(null);
   const activeSourceRef = React.useRef<AudioBufferSourceNode | null>(null);
@@ -41,6 +42,30 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
       }
     } catch (err) {
       setError('Erreur lors de la réinitialisation');
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Email requis pour le lien magique.");
+      return;
+    }
+    setIsScanning(true);
+    setError('');
+
+    try {
+      const { error } = await signInWithMagicLink(email);
+      if (error) {
+        setError(error.message);
+      } else {
+        setError('Lien magique envoyé ! Vérifiez votre email et cliquez sur le lien pour vous connecter.');
+        setIsMagicLinkMode(false);
+      }
+    } catch (err) {
+      setError('Erreur lors de l\'envoi du lien magique');
     } finally {
       setIsScanning(false);
     }
@@ -147,7 +172,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           </header>
         </div>
 
-        <form onSubmit={isResetMode ? handlePasswordReset : handleAuth} className="space-y-6" aria-label="Formulaire de connexion">
+        <form onSubmit={isResetMode ? handlePasswordReset : isMagicLinkMode ? handleMagicLink : handleAuth} className="space-y-6" aria-label="Formulaire de connexion">
           <div className="space-y-2">
             <label htmlFor="email" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Identifiant Digital</label>
             <input 
@@ -161,7 +186,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             />
           </div>
 
-          {!isResetMode && (
+          {!isResetMode && !isMagicLinkMode && (
             <div className="space-y-2">
               <label htmlFor="password" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Clé de Cryptage</label>
               <input 
@@ -186,10 +211,11 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           >
             {isScanning ? <><Loader2 className="animate-spin" size={20} /> SYNC...</> : 
              isResetMode ? <><Fingerprint size={20} /> RÉINITIALISER</> :
+             isMagicLinkMode ? <><Zap size={20} /> ENVOYER LIEN MAGIQUE</> :
              <><Fingerprint size={20} /> {isSignUp ? 'CRÉER COMPTE' : 'SYNCHRONISER'}</>}
           </button>
 
-          {!isResetMode && (
+          {!isResetMode && !isMagicLinkMode && (
             <>
               <button 
                 type="button"
@@ -197,6 +223,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
                 className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
               >
                 {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
+              </button>
+              
+              <button 
+                type="button"
+                onClick={() => setIsMagicLinkMode(true)}
+                className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+              >
+                ⚡ Connexion par lien magique
               </button>
               
               <button 
@@ -209,10 +243,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             </>
           )}
 
-          {isResetMode && (
+          {(isResetMode || isMagicLinkMode) && (
             <button 
               type="button"
-              onClick={() => setIsResetMode(false)}
+              onClick={() => {
+                setIsResetMode(false);
+                setIsMagicLinkMode(false);
+              }}
               className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
             >
               Retour à la connexion
