@@ -5,17 +5,21 @@ import {
 } from 'lucide-react';
 import { SYSTEM_CONFIG } from '../constants';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
-import { getDashboardStats } from '../services/statsService';
+import { getSocialStats, trackShare, SocialStats } from '../services/socialStatsService';
 
 export const SocialSync: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [customId, setCustomId] = useState("");
   const [isReading, setIsReading] = useState(false);
-  const [socialStats, setSocialStats] = useState({
+  const [socialStats, setSocialStats] = useState<SocialStats>({
     reach: 0,
     engagement: 0,
-    viralSpeed: 'LOADING'
+    viralSpeed: 'LOADING...',
+    shares: 0,
+    clicks: 0,
+    conversions: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
@@ -29,26 +33,14 @@ export const SocialSync: React.FC = () => {
   }, []);
 
   const loadSocialStats = async () => {
+    setIsLoading(true);
     try {
-      const stats = await getDashboardStats();
-      // Calculer les métriques sociales basées sur les vraies données
-      const reach = stats.prospects * 15; // Estimation: 15 vues par prospect
-      const engagement = stats.conversions > 0 ? ((stats.conversions / stats.prospects) * 100).toFixed(1) : '0.0';
-      const viralSpeed = stats.conversions > 10 ? 'MAX' : stats.conversions > 5 ? 'HIGH' : 'NORMAL';
-      
-      setSocialStats({
-        reach: reach,
-        engagement: parseFloat(engagement),
-        viralSpeed: viralSpeed
-      });
+      const stats = await getSocialStats();
+      setSocialStats(stats);
     } catch (error) {
       console.error('Erreur chargement stats sociales:', error);
-      // Fallback avec données par défaut
-      setSocialStats({
-        reach: 1250,
-        engagement: 3.2,
-        viralSpeed: 'NORMAL'
-      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +87,10 @@ export const SocialSync: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareTo = (platform: 'whatsapp' | 'facebook') => {
+  const shareTo = async (platform: 'whatsapp' | 'facebook') => {
+    // Tracker le partage
+    await trackShare(platform, 'smart_link');
+    
     let url = "";
     if (platform === 'whatsapp') {
       url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage + " " + smartLink)}`;
@@ -103,6 +98,9 @@ export const SocialSync: React.FC = () => {
       url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(smartLink)}`;
     }
     window.open(url, '_blank');
+    
+    // Recharger les stats après partage
+    setTimeout(loadSocialStats, 1000);
   };
 
   const copyInviteLink = () => {
@@ -207,15 +205,34 @@ export const SocialSync: React.FC = () => {
          </div>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
-              { label: "Portée Totale", value: socialStats.reach.toLocaleString(), icon: Users, color: "text-[#00d4ff]" },
-              { label: "Engagement", value: `${socialStats.engagement}%`, icon: TrendingUp, color: "text-emerald-400" },
-              { label: "Vitesse Virale", value: socialStats.viralSpeed, icon: Zap, color: "text-amber-500" }
+              { 
+                label: "Portée Totale", 
+                value: isLoading ? "..." : socialStats.reach.toLocaleString(), 
+                icon: Users, 
+                color: "text-[#00d4ff]",
+                subtitle: `${socialStats.shares} partages`
+              },
+              { 
+                label: "Engagement", 
+                value: isLoading ? "..." : `${socialStats.engagement}%`, 
+                icon: TrendingUp, 
+                color: "text-emerald-400",
+                subtitle: `${socialStats.clicks} clics`
+              },
+              { 
+                label: "Vitesse Virale", 
+                value: isLoading ? "..." : socialStats.viralSpeed, 
+                icon: Zap, 
+                color: "text-amber-500",
+                subtitle: `${socialStats.conversions} conversions`
+              }
             ].map((stat, i) => (
               <div key={i} className="p-10 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6 hover:bg-white/10 transition-colors group">
                 <stat.icon size={32} className={`${stat.color} group-hover:scale-110 transition-transform`} />
                 <div>
                   <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em] mb-2">{stat.label}</p>
                   <h4 className="text-4xl font-black text-white italic tracking-tighter">{stat.value}</h4>
+                  <p className="text-[10px] text-slate-600 mt-1 font-medium">{stat.subtitle}</p>
                 </div>
               </div>
             ))}
