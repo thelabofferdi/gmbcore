@@ -47,6 +47,45 @@ const App: React.FC = () => {
 
   const t = I18N[lang];
 
+  // Gérer les tokens d'authentification Magic Link dans l'URL
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Erreur auth callback:', error);
+        // Nettoyer l'URL des paramètres d'erreur
+        if (window.location.hash.includes('error=')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        return;
+      }
+
+      if (data.session) {
+        // Utilisateur connecté via Magic Link
+        const user = data.session.user;
+        const authUser: AuthUser = {
+          id: user.id,
+          name: user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          neoLifeId: SYSTEM_CONFIG.founder.id,
+          role: user.email?.includes('admin') ? 'ADMIN' : 'LEADER',
+          joinedDate: new Date(user.created_at),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`
+        };
+        setCurrentUser(authUser);
+        
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    // Vérifier s'il y a des paramètres d'auth dans l'URL
+    if (window.location.hash.includes('access_token') || window.location.hash.includes('error=')) {
+      handleAuthCallback();
+    }
+  }, []);
+
   // Vérifier si on est en mode prospect
   const urlParams = new URLSearchParams(window.location.search);
   const prospectLinkId = urlParams.get('prospect');
@@ -106,11 +145,36 @@ const App: React.FC = () => {
 
     checkAuth();
     
+    // Écouter les changements d'état d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const user = session.user;
+        const authUser: AuthUser = {
+          id: user.id,
+          name: user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          neoLifeId: SYSTEM_CONFIG.founder.id,
+          role: user.email?.includes('admin') ? 'ADMIN' : 'LEADER',
+          joinedDate: new Date(user.created_at),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`
+        };
+        setCurrentUser(authUser);
+        setIsAuthLoading(false);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        setIsAuthLoading(false);
+      }
+    });
+    
     const legalAccepted = localStorage.getItem('ndsa_legal_accepted');
     if (legalAccepted === 'true') setHasAcceptedLegal(true);
     else setShowLegal(true);
-    
-    return () => { clearInterval(clockTimer); clearInterval(syncTimer); };
+
+    return () => {
+      clearInterval(clockTimer);
+      clearInterval(syncTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = (user: AuthUser) => {
