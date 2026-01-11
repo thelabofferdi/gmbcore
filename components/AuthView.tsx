@@ -4,7 +4,7 @@ import { Fingerprint, Loader2, ShieldCheck, Zap, Layers, Volume2, Square } from 
 import { AuthUser } from '../types';
 import { SYSTEM_CONFIG } from '../constants';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from '../services/geminiService';
-import { signIn, signUp } from '../services/supabaseService';
+import { signIn, signUp, resetPassword } from '../services/supabaseService';
 
 interface AuthViewProps {
   onLogin: (user: AuthUser) => void;
@@ -17,9 +17,34 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
 
   const audioContextRef = React.useRef<AudioContext | null>(null);
   const activeSourceRef = React.useRef<AudioBufferSourceNode | null>(null);
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Email requis pour la réinitialisation.");
+      return;
+    }
+    setIsScanning(true);
+    setError('');
+
+    try {
+      const { error } = await resetPassword(email);
+      if (error) {
+        setError(error.message);
+      } else {
+        setError('Email de réinitialisation envoyé ! Vérifiez votre boîte mail.');
+        setIsResetMode(false);
+      }
+    } catch (err) {
+      setError('Erreur lors de la réinitialisation');
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +147,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           </header>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-6" aria-label="Formulaire de connexion">
+        <form onSubmit={isResetMode ? handlePasswordReset : handleAuth} className="space-y-6" aria-label="Formulaire de connexion">
           <div className="space-y-2">
             <label htmlFor="email" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Identifiant Digital</label>
             <input 
@@ -136,18 +161,20 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Clé de Cryptage</label>
-            <input 
-              id="password"
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-slate-950 border border-white/10 px-8 py-6 rounded-3xl text-white font-bold outline-none focus:border-[#00d4ff] transition-all"
-              required
-            />
-          </div>
+          {!isResetMode && (
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Clé de Cryptage</label>
+              <input 
+                id="password"
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-slate-950 border border-white/10 px-8 py-6 rounded-3xl text-white font-bold outline-none focus:border-[#00d4ff] transition-all"
+                required
+              />
+            </div>
+          )}
 
           {error && <p role="alert" className="text-rose-500 text-[10px] font-black uppercase tracking-widest text-center animate-pulse">{error}</p>}
 
@@ -157,16 +184,40 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             className="w-full py-8 bg-[#00d4ff] text-slate-950 font-black rounded-[2.5rem] uppercase tracking-[0.5em] text-xs shadow-2xl flex items-center justify-center gap-4 hover:brightness-110 active:scale-95 transition-all"
             aria-busy={isScanning}
           >
-            {isScanning ? <><Loader2 className="animate-spin" size={20} /> SYNC...</> : <><Fingerprint size={20} /> {isSignUp ? 'CRÉER COMPTE' : 'SYNCHRONISER'}</>}
+            {isScanning ? <><Loader2 className="animate-spin" size={20} /> SYNC...</> : 
+             isResetMode ? <><Fingerprint size={20} /> RÉINITIALISER</> :
+             <><Fingerprint size={20} /> {isSignUp ? 'CRÉER COMPTE' : 'SYNCHRONISER'}</>}
           </button>
 
-          <button 
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
-          >
-            {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
-          </button>
+          {!isResetMode && (
+            <>
+              <button 
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+              >
+                {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
+              </button>
+              
+              <button 
+                type="button"
+                onClick={() => setIsResetMode(true)}
+                className="w-full text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-[#00d4ff] transition-colors"
+              >
+                Mot de passe oublié ?
+              </button>
+            </>
+          )}
+
+          {isResetMode && (
+            <button 
+              type="button"
+              onClick={() => setIsResetMode(false)}
+              className="w-full text-[#00d4ff] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+            >
+              Retour à la connexion
+            </button>
+          )}
         </form>
       </div>
     </div>
