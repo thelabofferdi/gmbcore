@@ -328,7 +328,7 @@ const App: React.FC = () => {
           onOpenSidebar={() => setIsSidebarOpen(true)}
         />
 
-        <div className="p-4 md:p-10 flex-1 overflow-y-auto no-scrollbar pb-32">
+        <div className="p-3 md:p-6 lg:p-10 flex-1 overflow-y-auto no-scrollbar pb-20 md:pb-32">
           {activeTab === 'stats' && dashboardStats && <DashboardView t={t} stats={dashboardStats} myReferralLink={myReferralLink} currentUser={currentUser} />}
           {activeTab === 'jose' && <AssistantJose language={lang} currentSubscriberId={currentUser?.neoLifeId} currentUserWebAlias={currentUser?.neoLifeWebAlias} />}
           {activeTab === 'history' && <DiagnosticHistory />}

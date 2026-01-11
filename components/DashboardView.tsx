@@ -15,39 +15,38 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ t, stats, myReferralLink, currentUser }) => {
     return (
-        <div className="space-y-8 md:space-y-12 animate-in fade-in duration-1000 pb-20">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
+        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-1000 pb-16 md:pb-20">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 lg:gap-8">
                 <header>
-                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none italic uppercase">{t.dashboard}</h2>
-                    <p className="text-slate-500 font-medium text-sm md:text-xl mt-2 md:mt-4 italic">Global Command for Health Restoration.</p>
+                    <h2 className="text-2xl md:text-4xl lg:text-6xl font-black text-white tracking-tighter leading-none italic uppercase">{t.dashboard}</h2>
+                    <p className="text-slate-500 font-medium text-xs md:text-sm lg:text-xl mt-1 md:mt-2 lg:mt-4 italic">Global Command for Health Restoration.</p>
                 </header>
 
-                <div className="flex items-center gap-4 md:gap-6 bg-white/5 p-4 md:p-6 rounded-3xl md:rounded-[2.5rem] border border-white/10 backdrop-blur-xl group hover:border-[#00d4ff]/40 transition-all w-full lg:w-auto">
+                <div className="flex items-center gap-3 md:gap-4 lg:gap-6 bg-white/5 p-3 md:p-4 lg:p-6 rounded-2xl md:rounded-3xl lg:rounded-[2.5rem] border border-white/10 backdrop-blur-xl group hover:border-[#00d4ff]/40 transition-all w-full lg:w-auto">
                     <div className="text-right flex-1 lg:flex-none">
-                        <p className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Hub Health</p>
-                        <p className="text-2xl md:text-3xl font-black text-emerald-400 italic uppercase tracking-tighter">OPTIMIZED</p>
+                        <p className="text-[8px] md:text-[9px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Hub Health</p>
+                        <p className="text-lg md:text-2xl lg:text-3xl font-black text-emerald-400 italic uppercase tracking-tighter">OPTIMIZED</p>
                     </div>
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-[#00d4ff]/20 rounded-xl md:rounded-2xl flex items-center justify-center text-[#00d4ff] shadow-[0_0_20px_#00d4ff44] group-hover:scale-110 transition-transform">
-                        <ShieldCheck size={24} className="md:w-8 md:h-8" />
+                    <div className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 bg-[#00d4ff]/20 rounded-lg md:rounded-xl lg:rounded-2xl flex items-center justify-center text-[#00d4ff] shadow-[0_0_20px_#00d4ff44] group-hover:scale-110 transition-transform">
+                        <ShieldCheck size={20} className="md:w-6 md:h-6 lg:w-8 lg:h-8" />
                     </div>
                 </div>
             </div>
 
-            <section className="bg-slate-950/40 rounded-3xl md:rounded-[4.5rem] p-6 md:p-12 lg:p-20 text-white relative overflow-hidden shadow-3xl border border-white/5 backdrop-blur-3xl group">
-                <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10 md:gap-20">
-                    <div className="space-y-6 md:space-y-10 flex-1 w-full">
-                        <h3 className="text-3xl md:text-5xl lg:text-8xl font-black tracking-tighter leading-[0.9] italic uppercase text-center lg:text-left">Bio-Digital Identity</h3>
-                        <p className="text-slate-400 text-lg md:text-2xl font-medium max-w-3xl leading-relaxed italic text-center lg:text-left">Chaque diagnostic généré par José est synchronisé avec votre lien de capture universel.</p>
+            <section className="bg-slate-950/40 rounded-2xl md:rounded-3xl lg:rounded-[4.5rem] p-4 md:p-6 lg:p-12 xl:p-20 text-white relative overflow-hidden shadow-3xl border border-white/5 backdrop-blur-3xl group">
+                <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 md:gap-10 lg:gap-20">
+                    <div className="space-y-4 md:space-y-6 lg:space-y-10 flex-1 w-full">
+                        <h3 className="text-xl md:text-3xl lg:text-5xl xl:text-8xl font-black tracking-tighter leading-[0.9] italic uppercase text-center lg:text-left">Bio-Digital Identity</h3>
+                        <p className="text-slate-400 text-sm md:text-lg lg:text-2xl font-medium max-w-3xl leading-relaxed italic text-center lg:text-left">Chaque diagnostic généré par José est synchronisé avec votre lien de capture universel.</p>
 
-                        <div className="flex flex-col md:flex-row gap-4 items-center">
-                            <div className="flex-1 w-full bg-slate-900/80 border border-white/10 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-mono text-[#00d4ff] text-xs md:text-sm truncate shadow-inner">
+                        <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
+                            <div className="flex-1 w-full bg-slate-900/80 border border-white/10 px-4 md:px-6 lg:px-10 py-3 md:py-4 lg:py-6 rounded-xl md:rounded-2xl lg:rounded-[2rem] font-mono text-[#00d4ff] text-[10px] md:text-xs lg:text-sm truncate shadow-inner">
                                 {myReferralLink}
                             </div>
                             <button
                                 onClick={() => { navigator.clipboard.writeText(myReferralLink); alert("Lien Copié !"); }}
-                                className="w-full md:w-auto p-4 md:p-6 bg-white/10 border border-white/10 rounded-2xl md:rounded-3xl hover:bg-[#00d4ff] hover:text-slate-950 transition-all flex items-center justify-center gap-3 shadow-xl uppercase font-black text-[10px] italic tracking-widest"
-                            >
-                                <Share2 size={20} className="md:w-6 md:h-6" /> <span>SYNC</span>
+                                className="w-full md:w-auto p-3 md:p-4 lg:p-6 bg-white/10 border border-white/10 rounded-xl md:rounded-2xl lg:rounded-3xl hover:bg-[#00d4ff] hover:text-slate-950 transition-all flex items-center justify-center gap-2 md:gap-3 shadow-xl uppercase font-black text-[9px] md:text-[10px] italic tracking-widest">
+                                <Share2 size={16} className="md:w-5 md:h-5 lg:w-6 lg:h-6" /> <span>SYNC</span>
                             </button>
                         </div>
 
