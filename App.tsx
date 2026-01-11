@@ -16,6 +16,7 @@ import { DiagnosticHistory } from './components/DiagnosticHistory';
 import { LegalDisclaimer } from './components/LegalDisclaimer';
 import { ShareLinkGenerator } from './components/ShareLinkGenerator';
 import { ProspectMode } from './components/ProspectMode';
+import { PasswordResetModal } from './components/PasswordResetModal';
 import { Language, AuthUser } from './types'; 
 import { voiceService } from './services/voiceService';
 import { supabase, getCurrentUser, signOut } from './services/supabaseService';
@@ -44,6 +45,7 @@ const App: React.FC = () => {
   const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   const t = I18N[lang];
 
@@ -68,8 +70,8 @@ const App: React.FC = () => {
       
       // Gérer les liens de recovery (reset password)
       if (type === 'recovery') {
-        // Rediriger vers une page de reset password ou gérer ici
-        console.log('Lien de récupération détecté');
+        // Afficher le modal de reset password
+        setShowPasswordReset(true);
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
@@ -450,6 +452,16 @@ const DashboardContent = ({ t, stats, myReferralLink, currentUser }: any) => (
           </section>
         </div>
     </div>
+
+    {/* Modal de reset password */}
+    <PasswordResetModal 
+      isOpen={showPasswordReset}
+      onClose={() => setShowPasswordReset(false)}
+      onSuccess={() => {
+        setShowPasswordReset(false);
+        // L'utilisateur peut maintenant se connecter avec son nouveau mot de passe
+      }}
+    />
 );
 
 export default App;
