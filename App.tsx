@@ -57,10 +57,19 @@ const App: React.FC = () => {
       const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
       const error = hashParams.get('error') || queryParams.get('error');
+      const type = hashParams.get('type') || queryParams.get('type');
       
       if (error) {
         console.error('Erreur auth:', error);
         // Nettoyer l'URL et afficher un message d'erreur
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+      
+      // Gérer les liens de recovery (reset password)
+      if (type === 'recovery') {
+        // Rediriger vers une page de reset password ou gérer ici
+        console.log('Lien de récupération détecté');
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
