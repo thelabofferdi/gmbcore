@@ -642,31 +642,6 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
                 </button>
               </div>
             </div>
-
-            {/* Protocole médical visible */}
-            <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-600/30">
-              <h4 className="text-sm font-semibold text-gray-300 mb-3 text-center">
-                Protocole d'Analyse Dr José
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                <div className="text-center">
-                  <div className="text-green-400 font-bold">1. TRE-EN-EN</div>
-                  <div className="text-gray-400">Barrière Cellulaire</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-cyan-400 font-bold">2. Thermique</div>
-                  <div className="text-gray-400">Facteur 37°C</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-yellow-400 font-bold">3. Carences</div>
-                  <div className="text-gray-400">Déficits Nutritionnels</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-purple-400 font-bold">4. Relance</div>
-                  <div className="text-gray-400">3-5 Produits</div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
         
