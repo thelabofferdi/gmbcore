@@ -7,8 +7,7 @@ import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
 import { generateGroqResponseStream } from './groqService';
 
 export const getAIInstance = async () => {
-  // Mode Groq activé - plus rapide et plus fiable
-  console.log('🚀 Groq API activé - Inférence ultra-rapide');
+  // Mode Groq activé - inférence ultra-rapide
   return true; // Placeholder
 };
 
@@ -24,9 +23,7 @@ export const generateJoseResponseStream = async (
   prospectMode?: boolean
 ) => {
   try {
-    console.log('🚀 Utilisation de Groq - Inférence ultra-rapide');
-    
-    // Utiliser Groq au lieu de Gemini
+    // Utiliser Groq - inférence ultra-rapide
     const response = await generateGroqResponseStream(userPrompt, history);
     
     // Créer un stream compatible
