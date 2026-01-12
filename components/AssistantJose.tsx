@@ -269,20 +269,25 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
     setIsScanning(medicalMode && !!selectedImage);
     const userMsgId = 'msg_' + Date.now();
     
-    // Construire le prompt selon le mode
-    let promptPrefix = "";
+    // Message visible pour l'utilisateur (sans le prompt système)
+    const visibleMessage = input || (selectedImage ? "[Analyse de document biologique]" : "");
+    
+    // Construire le prompt système complet (invisible)
+    let fullPrompt = "";
     if (medicalMode) {
-      promptPrefix = "[ACTION: BIO-SCAN MÉDICAL APPROFONDI] Veuillez analyser ce document clinique : ";
+      fullPrompt = "[ACTION: BIO-SCAN MÉDICAL APPROFONDI] Veuillez analyser ce document clinique : " + visibleMessage;
     } else if (recruitmentMode) {
-      promptPrefix = getPromptForMode('recruitment') + "\n\nDistributeur ID: " + getDistributorID() + "\n\n";
+      fullPrompt = getPromptForMode('recruitment') + "\n\nDistributeur ID: " + getDistributorID() + "\n\n" + visibleMessage;
     } else if (salesMode) {
-      promptPrefix = getPromptForMode('sales') + "\n\nDistributeur ID: " + getDistributorID() + "\n\nLien boutique: https://shopneolife.com/" + getDistributorID() + "/shop/atoz\n\n";
+      fullPrompt = getPromptForMode('sales') + "\n\nDistributeur ID: " + getDistributorID() + "\n\nLien boutique: https://shopneolife.com/" + getDistributorID() + "/shop/atoz\n\n" + visibleMessage;
+    } else {
+      fullPrompt = visibleMessage;
     }
     
     const userMsg: Message = { 
       id: userMsgId, 
       role: 'user', 
-      parts: [{ text: promptPrefix + (input || (selectedImage ? "[Analyse de document biologique]" : "")) }], 
+      parts: [{ text: visibleMessage }], // Seul le message visible est affiché
       timestamp: new Date(),
       status: 'sending'
     };
@@ -306,7 +311,7 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
       );
 
       const responsePromise = generateJoseResponseStream(
-        userMsg.parts[0].text, 
+        fullPrompt, // Utiliser le prompt complet pour l'IA
         messages, 
         referralContext, 
         language as Language, 
