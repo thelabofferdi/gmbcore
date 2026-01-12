@@ -351,12 +351,6 @@ export const generateJoseAudio = async (text: string, language: Language = 'fr')
     }
   });
 };
-    return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
-  } catch (error) {
-    console.error("TTS Error:", error);
-    return null;
-  }
-};
 
 export function decodeBase64(base64: string): Uint8Array {
   const binaryString = atob(base64);
