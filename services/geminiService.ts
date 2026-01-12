@@ -44,48 +44,65 @@ export const generateJoseResponseStream = async (
   userWebAlias?: string, // Web Alias NeoLife de l'utilisateur connecté
   prospectMode?: boolean // Mode prospect pour collecter les infos
 ) => {
-  let ai;
   let retryCount = 0;
   const maxRetries = 3;
 
   while (retryCount < maxRetries) {
     try {
-      ai = await getAIInstance();
-      break;
+      const ai = await getAIInstance();
+      
+      const contents: any[] = history.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.parts[0].text }]
+      }));
+
+      const userParts: any[] = [{ text: userPrompt }];
+      if (imageContent) {
+        userParts.push({
+          inlineData: {
+            data: imageContent.data,
+            mimeType: imageContent.mimeType
+          }
+        });
+      }
+
+      contents.push({
+        role: 'user',
+        parts: userParts
+      });
+
+      // Essayer l'appel API avec retry automatique
+      const response = await ai.generateContentStream({
+        contents,
+        systemInstruction: buildSystemPrompt(referralContext, language, customPersona, currentSubscriberId, userWebAlias, prospectMode)
+      });
+
+      return response.stream;
+      
     } catch (error) {
-      console.error(`❌ Tentative ${retryCount + 1} échouée:`, error);
+      console.error(`🔄 Tentative ${retryCount + 1}/${maxRetries} échouée:`, error);
       retryCount++;
       
       if (retryCount < maxRetries) {
-        console.log('🔄 Rotation de clé API...');
+        console.log('🔄 Rotation vers clé suivante...');
         currentKeyIndex = (currentKeyIndex + 1) % getApiKeys().length;
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } else {
-        throw new Error('José fait une petite pause technique, revenez dans quelques minutes ! 😊');
+        throw error; // Lancer l'erreur finale après tous les retries
       }
     }
   }
-  
-  const contents: any[] = history.map(msg => ({
-    role: msg.role === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.parts[0].text }]
-  }));
+};
 
-  const userParts: any[] = [{ text: userPrompt }];
-  if (imageContent) {
-    userParts.push({
-      inlineData: {
-        data: imageContent.data,
-        mimeType: imageContent.mimeType
-      }
-    });
-  }
-
-  contents.push({
-    role: 'user',
-    parts: userParts
-  });
-
+// Fonction pour construire le prompt système
+const buildSystemPrompt = (
+  referralContext?: ReferralContext | null,
+  language: Language = 'fr',
+  customPersona?: AIPersona,
+  currentSubscriberId?: string,
+  userWebAlias?: string,
+  prospectMode?: boolean
+) => {
   let hostName = SYSTEM_CONFIG.founder.name;
   let webAlias = userWebAlias || SYSTEM_CONFIG.founder.webAlias || 'startupforworld';
   let finalShopUrl = `https://shopneolife.com/${webAlias}/shop/products`;
@@ -200,19 +217,11 @@ export const generateJoseResponseStream = async (
     LANGUE : ${language}.
   `;
 
-  return await ai.models.generateContentStream({
-    model: 'gemini-2.5-flash',
-    contents: contents,
-    config: {
-      systemInstruction,
-      temperature: 0.1,
-      topP: 0.8
-    }
-  });
+  return systemInstruction;
 };
 
 export const analyzeClinicalData = async (imageContent: { data: string; mimeType: string }): Promise<ClinicalData | null> => {
-  const ai = getAIInstance();
+  const ai = await getAIInstance();
   
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
