@@ -484,38 +484,85 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
           </div>
         ))}
         
-        {/* Message de bienvenue GMB CORE OS pour prospects */}
+        {/* Message de bienvenue adapté au mode */}
         {messages.length === 1 && !isLoading && prospectMode && (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-700">
             <div className="text-center space-y-4">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#00d4ff]/10 border border-[#00d4ff]/30 rounded-full">
-                <div className="w-3 h-3 rounded-full bg-[#00d4ff] animate-pulse"></div>
-                <span className="text-[#00d4ff] font-black text-xs uppercase tracking-[0.3em]">GMB CORE OS ACTIVÉ</span>
+              <div className={`inline-flex items-center gap-3 px-6 py-3 border rounded-full ${
+                recruitmentMode 
+                  ? 'bg-yellow-500/10 border-yellow-500/30' 
+                  : 'bg-[#00d4ff]/10 border-[#00d4ff]/30'
+              }`}>
+                <div className={`w-3 h-3 rounded-full animate-pulse ${
+                  recruitmentMode ? 'bg-yellow-500' : 'bg-[#00d4ff]'
+                }`}></div>
+                <span className={`font-black text-xs uppercase tracking-[0.3em] ${
+                  recruitmentMode ? 'text-yellow-500' : 'text-[#00d4ff]'
+                }`}>
+                  {recruitmentMode ? 'BUSINESS MODE ACTIVÉ' : 'SANTÉ MODE ACTIVÉ'}
+                </span>
               </div>
-              <h1 className="text-xl md:text-3xl font-black text-white leading-tight">
-                BIENVENUE DANS L'ÉCOSYSTÈME<br />
-                <span className="text-[#00d4ff]">GMB CORE OS</span>
-              </h1>
-              <p className="text-slate-300 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
-                Votre corps est une machine biologique, votre business est un système numérique.<br />
-                <span className="text-[#00d4ff] font-semibold">Nous optimisons les deux.</span>
-              </p>
+              
+              {recruitmentMode ? (
+                <>
+                  <h1 className="text-xl md:text-3xl font-black text-white leading-tight">
+                    ÉCOSYSTÈME BUSINESS<br />
+                    <span className="text-yellow-400">GMB CORE OS</span>
+                  </h1>
+                  <p className="text-slate-300 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    "Autrefois c'était long, aujourd'hui c'est une 'sucette'.<br />
+                    <span className="text-yellow-400 font-semibold">En un an, devenez millionnaire."</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-xl md:text-3xl font-black text-white leading-tight">
+                    ANALYSE SANTÉ<br />
+                    <span className="text-[#00d4ff]">NUTRITION CELLULAIRE</span>
+                  </h1>
+                  <p className="text-slate-300 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    Votre corps est une machine biologique.<br />
+                    <span className="text-[#00d4ff] font-semibold">Nous l'optimisons.</span>
+                  </p>
+                </>
+              )}
             </div>
             
             <div className="flex justify-center">
               <button
                 onClick={() => {
-                  setInput("Je veux démarrer mon analyse santé et business complète avec Coach José");
+                  const message = recruitmentMode 
+                    ? "Je veux découvrir comment devenir millionnaire avec GMB CORE OS"
+                    : "Je veux démarrer mon analyse santé et business complète avec Coach José";
+                  setInput(message);
                   handleSend();
                 }}
-                className="group relative px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-[#00d4ff] to-[#0099cc] text-slate-950 font-black text-sm md:text-lg uppercase tracking-wider rounded-xl md:rounded-2xl shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6)] transition-all duration-300 border-2 border-amber-400/50 hover:border-amber-400 transform hover:scale-105"
+                className={`group relative px-6 py-3 md:px-8 md:py-4 text-slate-950 font-black text-sm md:text-lg uppercase tracking-wider rounded-xl md:rounded-2xl transition-all duration-300 border-2 transform hover:scale-105 ${
+                  recruitmentMode
+                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-[0_0_30px_rgba(255,193,7,0.4)] hover:shadow-[0_0_40px_rgba(255,193,7,0.6)] border-yellow-400/50 hover:border-yellow-400'
+                    : 'bg-gradient-to-r from-[#00d4ff] to-[#0099cc] shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6)] border-amber-400/50 hover:border-amber-400'
+                }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-amber-500/20 rounded-2xl blur-sm group-hover:blur-none transition-all"></div>
+                <div className={`absolute inset-0 rounded-2xl blur-sm group-hover:blur-none transition-all ${
+                  recruitmentMode
+                    ? 'bg-gradient-to-r from-yellow-400/20 to-yellow-500/20'
+                    : 'bg-gradient-to-r from-amber-400/20 to-amber-500/20'
+                }`}></div>
                 <span className="relative flex items-center gap-2 md:gap-3">
-                  <Rocket size={18} className="md:hidden" />
-                  <Rocket size={24} className="hidden md:block" />
-                  <span className="hidden sm:inline">DÉMARRER MON ANALYSE SANTÉ & BUSINESS</span>
-                  <span className="sm:hidden">DÉMARRER L'ANALYSE</span>
+                  {recruitmentMode ? (
+                    <>
+                      <span className="text-2xl">💰</span>
+                      <span className="hidden sm:inline">DÉMARRER MON BUSINESS</span>
+                      <span className="sm:hidden">BUSINESS</span>
+                    </>
+                  ) : (
+                    <>
+                      <Rocket size={18} className="md:hidden" />
+                      <Rocket size={24} className="hidden md:block" />
+                      <span className="hidden sm:inline">DÉMARRER MON ANALYSE SANTÉ</span>
+                      <span className="sm:hidden">ANALYSE SANTÉ</span>
+                    </>
+                  )}
                 </span>
               </button>
             </div>
