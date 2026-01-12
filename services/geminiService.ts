@@ -27,6 +27,10 @@ export const getAIInstance = async () => {
     throw new Error('José se prépare, revenez dans un instant ! ⚙️');
   }
   
+  // Mode d'urgence : toutes les clés sont probablement en quota
+  // Retourner une erreur immédiate pour éviter les timeouts
+  throw new Error('José fait une pause technique pour maintenance. Revenez dans quelques heures ! 🔧✨');
+  
   const activeKey = keys[currentKeyIndex % keys.length];
   // Log sécurisé sans exposer la clé
   console.log(`🔑 Clé API ${currentKeyIndex + 1}/${keys.length} sélectionnée`);
