@@ -26,3 +26,17 @@ dist-ssr
 # Local Netlify folder
 .netlify
 .vercel
+
+# API Keys - NEVER COMMIT
+config/api-keys.json
+.env
+.env.local
+.env.production
+
+# API Keys and sensitive files
+config/api-keys.json
+.env
+.env.local
+.env.production
+*.key
+*.pem
