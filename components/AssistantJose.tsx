@@ -602,6 +602,73 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
             </div>
           </div>
         )}
+
+        {/* Interface spéciale pour mode vente - Upload de documents */}
+        {messages.length === 1 && !isLoading && prospectMode && salesMode && (
+          <div className="space-y-6">
+            <div className="bg-gray-800/50 p-6 rounded-xl border border-green-500/30">
+              <h3 className="text-lg font-semibold text-green-300 mb-4 flex items-center">
+                <span className="mr-2">📋</span>
+                Analyse de Documents Biologiques
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-700/30 p-4 rounded-lg text-center border border-green-500/20 hover:border-green-500/40 transition-colors cursor-pointer">
+                  <div className="text-3xl mb-2">🩸</div>
+                  <div className="text-sm font-medium text-green-300">Bilan Sanguin</div>
+                  <div className="text-xs text-gray-400 mt-1">Analyse complète</div>
+                </div>
+                <div className="bg-gray-700/30 p-4 rounded-lg text-center border border-cyan-500/20 hover:border-cyan-500/40 transition-colors cursor-pointer">
+                  <div className="text-3xl mb-2">💊</div>
+                  <div className="text-sm font-medium text-cyan-300">Ordonnance</div>
+                  <div className="text-xs text-gray-400 mt-1">Médicaments actuels</div>
+                </div>
+                <div className="bg-gray-700/30 p-4 rounded-lg text-center border border-yellow-500/20 hover:border-yellow-500/40 transition-colors cursor-pointer">
+                  <div className="text-3xl mb-2">📊</div>
+                  <div className="text-sm font-medium text-yellow-300">Analyses Diverses</div>
+                  <div className="text-xs text-gray-400 mt-1">Urine, salive, etc.</div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    setInput("Je souhaite faire analyser mes documents biologiques par le Dr José");
+                    handleSend();
+                  }}
+                  className="bg-gradient-to-r from-green-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-700 hover:to-cyan-700 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  🔬 Commencer l'Analyse Professionnelle
+                </button>
+              </div>
+            </div>
+
+            {/* Protocole médical visible */}
+            <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-600/30">
+              <h4 className="text-sm font-semibold text-gray-300 mb-3 text-center">
+                Protocole d'Analyse Dr José
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="text-center">
+                  <div className="text-green-400 font-bold">1. TRE-EN-EN</div>
+                  <div className="text-gray-400">Barrière Cellulaire</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-cyan-400 font-bold">2. Thermique</div>
+                  <div className="text-gray-400">Facteur 37°C</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-yellow-400 font-bold">3. Carences</div>
+                  <div className="text-gray-400">Déficits Nutritionnels</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-purple-400 font-bold">4. Relance</div>
+                  <div className="text-gray-400">3-5 Produits</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {isLoading && (
           <div className="flex items-center gap-4 px-10 py-5 bg-white/5 border border-white/10 rounded-3xl w-fit animate-pulse">

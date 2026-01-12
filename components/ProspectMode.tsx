@@ -206,18 +206,109 @@ export const ProspectMode: React.FC<ProspectModeProps> = ({ linkId, referrerId }
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <AssistantJose 
-        language="fr"
-        currentSubscriberId={referrerId}
-        prospectMode={true}
-        recruitmentMode={isRecruitmentMode}
-        salesMode={isSalesMode}
-        linkId={linkId}
-        referrerId={referrerId}
-        onConversationEnd={handleChatEnd}
-      />
-    </div>
-  );
+  if (step === 'chat') {
+    if (isSalesMode) {
+      return (
+        <div className="min-h-screen bg-gray-900">
+          {/* Header médical professionnel */}
+          <div className="bg-gradient-to-r from-green-800 to-cyan-800 p-4 border-b border-green-500/30">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">🩺</span>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">Analyse Biologique Professionnelle</h1>
+                  <p className="text-green-200 text-sm">Dr. José - Expert en Nutrition Cellulaire</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-green-300 text-sm">Consultation Sécurisée</div>
+                <div className="text-green-400 text-xs">Confidentiel • RGPD</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interface d'analyse */}
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="bg-gray-800 rounded-xl border border-green-500/30 shadow-xl">
+              {/* Zone d'upload de documents */}
+              <div className="p-6 border-b border-gray-700">
+                <h3 className="text-lg font-semibold text-green-300 mb-4">
+                  📋 Téléchargez vos documents biologiques
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-gray-700/50 p-4 rounded-lg text-center border border-green-500/20">
+                    <div className="text-2xl mb-2">🩸</div>
+                    <div className="text-sm text-gray-300">Bilan Sanguin</div>
+                  </div>
+                  <div className="bg-gray-700/50 p-4 rounded-lg text-center border border-green-500/20">
+                    <div className="text-2xl mb-2">💊</div>
+                    <div className="text-sm text-gray-300">Ordonnance</div>
+                  </div>
+                  <div className="bg-gray-700/50 p-4 rounded-lg text-center border border-green-500/20">
+                    <div className="text-2xl mb-2">📊</div>
+                    <div className="text-sm text-gray-300">Analyses Urinaires</div>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-400 text-center">
+                  Formats acceptés: PDF, JPG, PNG • Taille max: 10MB • Données chiffrées
+                </div>
+              </div>
+
+              {/* Chat médical */}
+              <AssistantJose 
+                language="fr"
+                currentSubscriberId={referrerId}
+                prospectMode={true}
+                salesMode={true}
+                linkId={linkId}
+                referrerId={referrerId}
+                onConversationEnd={handleChatEnd}
+              />
+            </div>
+
+            {/* Protocole médical affiché */}
+            <div className="mt-6 grid md:grid-cols-4 gap-4">
+              <div className="bg-gray-800 p-4 rounded-lg border border-green-500/20 text-center">
+                <div className="text-green-400 font-bold text-sm mb-1">ÉTAPE 1</div>
+                <div className="text-xs text-gray-300">Barrière Cellulaire</div>
+                <div className="text-xs text-green-300">TRE-EN-EN</div>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg border border-cyan-500/20 text-center">
+                <div className="text-cyan-400 font-bold text-sm mb-1">ÉTAPE 2</div>
+                <div className="text-xs text-gray-300">Facteur Thermique</div>
+                <div className="text-xs text-cyan-300">37°C Optimal</div>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg border border-yellow-500/20 text-center">
+                <div className="text-yellow-400 font-bold text-sm mb-1">ÉTAPE 3</div>
+                <div className="text-xs text-gray-300">Carences</div>
+                <div className="text-xs text-yellow-300">Déficits Nutritionnels</div>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg border border-purple-500/20 text-center">
+                <div className="text-purple-400 font-bold text-sm mb-1">ÉTAPE 4</div>
+                <div className="text-xs text-gray-300">Trio de Relance</div>
+                <div className="text-xs text-purple-300">3-5 Produits</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    } else {
+      // Interface recrutement normale
+      return (
+        <div className="min-h-screen bg-gray-900">
+          <AssistantJose 
+            language="fr"
+            currentSubscriberId={referrerId}
+            prospectMode={true}
+            recruitmentMode={true}
+            linkId={linkId}
+            referrerId={referrerId}
+            onConversationEnd={handleChatEnd}
+          />
+        </div>
+      );
+    }
+  }
 };
