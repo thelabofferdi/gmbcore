@@ -144,6 +144,9 @@ const App: React.FC = () => {
   const prospectLinkId = urlParams.get('prospect');
   const referrerId = urlParams.get('ref');
 
+  // Debug pour voir les paramètres
+  console.log('🔍 App Debug:', { prospectLinkId, referrerId, url: window.location.href });
+
   // Si mode prospect, afficher ProspectMode
   if (prospectLinkId && referrerId) {
     return <ProspectMode linkId={prospectLinkId} referrerId={referrerId} />;

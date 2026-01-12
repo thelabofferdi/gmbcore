@@ -22,6 +22,8 @@ export const ProspectMode: React.FC<ProspectModeProps> = ({ linkId, referrerId }
   const isRecruitmentMode = linkId?.startsWith('rec_');
   const isSalesMode = linkId?.startsWith('sales_');
 
+  console.log('🔍 ProspectMode Debug:', { linkId, isRecruitmentMode, isSalesMode });
+
   const handleStartChat = () => {
     setStep('chat');
   };
