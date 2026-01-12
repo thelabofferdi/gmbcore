@@ -4,19 +4,30 @@ import { SYSTEM_CONFIG } from "../constants";
 import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../types";
 import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
 
-// Clés API de fallback temporaires
-const FALLBACK_KEYS = [
-  'AIzaSyAWJO3TIqpaOjTu_3FjPSYwdxyl3cj-vXI',
-  'AIzaSyDiIAXjEmFTkyTpZZnVrgq5pbe67jl5qIc',
-  'AIzaSyCfJOM6wO9w9NXEjqqwodUvmEXnlQY33gw',
-  'AIzaSyCRq2KQIfYysPIvTej9-x1yE8BAbWgpOZo',
-  'AIzaSyBna8vcirJ96PR4XNAGiEedEkVPy_yY6AQ'
-];
+// Utiliser les variables d'environnement pour les clés
+const getApiKeys = () => {
+  const keys = [];
+  for (let i = 1; i <= 13; i++) {
+    const key = import.meta.env[`VITE_GEMINI_KEY_${i}`];
+    if (key) keys.push(key);
+  }
+  // Fallback sur la clé principale si aucune clé numérotée
+  if (keys.length === 0) {
+    const mainKey = import.meta.env.VITE_API_KEY;
+    if (mainKey) keys.push(mainKey);
+  }
+  return keys;
+};
 
 let currentKeyIndex = 0;
 
 export const getAIInstance = async () => {
-  const activeKey = FALLBACK_KEYS[currentKeyIndex % FALLBACK_KEYS.length];
+  const keys = getApiKeys();
+  if (keys.length === 0) {
+    throw new Error('Aucune clé API configurée');
+  }
+  
+  const activeKey = keys[currentKeyIndex % keys.length];
   console.log(`🔑 Utilisation de la clé: ${activeKey.substring(0, 20)}...`);
   return new GoogleGenAI({ apiKey: activeKey });
 };
@@ -46,7 +57,7 @@ export const generateJoseResponseStream = async (
       
       if (retryCount < maxRetries) {
         console.log('🔄 Rotation de clé API...');
-        currentKeyIndex = (currentKeyIndex + 1) % FALLBACK_KEYS.length;
+        currentKeyIndex = (currentKeyIndex + 1) % getApiKeys().length;
         await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s
       } else {
         throw new Error('Toutes les clés API sont indisponibles');
