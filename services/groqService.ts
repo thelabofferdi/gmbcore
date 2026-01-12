@@ -26,7 +26,7 @@ export const generateGroqResponseStream = async (prompt: string, history: any[] 
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192', // Modèle plus stable
+        model: 'llama-3.1-8b-instant', // Nouveau modèle stable
         messages,
         temperature: 0.7,
         max_tokens: 500,
