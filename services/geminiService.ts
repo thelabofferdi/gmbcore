@@ -4,37 +4,12 @@ import { SYSTEM_CONFIG } from "../constants";
 import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../types";
 import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
 
-// Utiliser les variables d'environnement pour les clés
-const getApiKeys = () => {
-  const keys = [];
-  for (let i = 1; i <= 13; i++) {
-    const key = import.meta.env[`VITE_GEMINI_KEY_${i}`];
-    if (key) keys.push(key);
-  }
-  // Fallback sur la clé principale si aucune clé numérotée
-  if (keys.length === 0) {
-    const mainKey = import.meta.env.VITE_API_KEY;
-    if (mainKey) keys.push(mainKey);
-  }
-  return keys;
-};
-
-let currentKeyIndex = 0;
+import { generateGroqResponseStream } from './groqService';
 
 export const getAIInstance = async () => {
-  const keys = getApiKeys();
-  if (keys.length === 0) {
-    throw new Error('José se prépare, revenez dans un instant ! ⚙️');
-  }
-  
-  // Mode d'urgence : toutes les clés sont probablement en quota
-  // Retourner une erreur immédiate pour éviter les timeouts
-  throw new Error('José fait une pause technique pour maintenance. Revenez dans quelques heures ! 🔧✨');
-  
-  const activeKey = keys[currentKeyIndex % keys.length];
-  // Log sécurisé sans exposer la clé
-  console.log(`🔑 Clé API ${currentKeyIndex + 1}/${keys.length} sélectionnée`);
-  return new GoogleGenAI({ apiKey: activeKey });
+  // Mode Groq activé - plus rapide et plus fiable
+  console.log('🚀 Groq API activé - Inférence ultra-rapide');
+  return true; // Placeholder
 };
 
 export const generateJoseResponseStream = async (
@@ -45,56 +20,59 @@ export const generateJoseResponseStream = async (
   customPersona?: AIPersona,
   currentSubscriberId?: string,
   imageContent?: { data: string; mimeType: string } | null,
-  userWebAlias?: string, // Web Alias NeoLife de l'utilisateur connecté
-  prospectMode?: boolean // Mode prospect pour collecter les infos
+  userWebAlias?: string,
+  prospectMode?: boolean
 ) => {
-  let retryCount = 0;
-  const maxRetries = 3;
+  try {
+    console.log('🚀 Utilisation de Groq - Inférence ultra-rapide');
+    
+    // Utiliser Groq au lieu de Gemini
+    const response = await generateGroqResponseStream(userPrompt, history);
+    
+    // Créer un stream compatible
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No response stream');
 
-  while (retryCount < maxRetries) {
-    try {
-      const ai = await getAIInstance();
-      
-      const contents: any[] = history.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.parts[0].text }]
-      }));
+    return {
+      async *[Symbol.asyncIterator]() {
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-      const userParts: any[] = [{ text: userPrompt }];
-      if (imageContent) {
-        userParts.push({
-          inlineData: {
-            data: imageContent.data,
-            mimeType: imageContent.mimeType
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') return;
+                
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content;
+                  if (content) {
+                    yield { text: content };
+                  }
+                } catch (e) {
+                  // Ignorer les erreurs de parsing
+                }
+              }
+            }
           }
-        });
+        } finally {
+          reader.releaseLock();
+        }
       }
+    };
 
-      contents.push({
-        role: 'user',
-        parts: userParts
-      });
-
-      // Essayer l'appel API avec retry automatique
-      const response = await ai.generateContentStream({
-        contents,
-        systemInstruction: buildSystemPrompt(referralContext, language, customPersona, currentSubscriberId, userWebAlias, prospectMode)
-      });
-
-      return response.stream;
-      
-    } catch (error) {
-      console.error(`🔄 Tentative ${retryCount + 1}/${maxRetries} échouée:`, error);
-      retryCount++;
-      
-      if (retryCount < maxRetries) {
-        console.log('🔄 Rotation vers clé suivante...');
-        currentKeyIndex = (currentKeyIndex + 1) % getApiKeys().length;
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } else {
-        throw error; // Lancer l'erreur finale après tous les retries
-      }
-    }
+  } catch (error) {
+    console.error('Groq Error:', error);
+    throw error;
   }
 };
 
@@ -335,21 +313,44 @@ export const generateBiologicalVisualization = async (prompt: string) => {
 };
 
 export const generateJoseAudio = async (text: string, language: Language = 'fr') => {
-  try {
-    const ai = getAIInstance();
-    const voiceMapping = { fr: 'Kore', en: 'Zephyr', it: 'Puck', es: 'Charon' };
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
-      contents: [{ parts: [{ text: text.replace(/[*#]/g, '') }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: voiceMapping[language] || 'Kore' }, 
-          },
-        },
-      },
-    });
+  return new Promise((resolve, reject) => {
+    try {
+      // TTS Natif du navigateur - Plus rapide et gratuit
+      const utterance = new SpeechSynthesisUtterance(text.replace(/[*#]/g, ''));
+      
+      // Configuration pour José
+      utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 0.8;
+      
+      // Essayer de trouver une voix appropriée
+      const voices = speechSynthesis.getVoices();
+      const targetLang = utterance.lang.substring(0, 2);
+      const voice = voices.find(v => v.lang.startsWith(targetLang));
+      
+      if (voice) {
+        utterance.voice = voice;
+      }
+
+      utterance.onend = () => {
+        resolve('native-tts-complete');
+      };
+
+      utterance.onerror = (error) => {
+        console.error('TTS Error:', error);
+        reject(error);
+      };
+
+      // Lancer la synthèse vocale native
+      speechSynthesis.speak(utterance);
+      
+    } catch (error) {
+      console.error('Native TTS Error:', error);
+      reject(error);
+    }
+  });
+};
     return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
   } catch (error) {
     console.error("TTS Error:", error);
