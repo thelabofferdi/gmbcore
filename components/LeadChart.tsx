@@ -22,7 +22,7 @@ export const LeadChart: React.FC<LeadChartProps> = ({ userId }) => {
 
     fetchData();
   }, [userId]);
-  return (
+  
   return (
     <div className="h-64 md:h-80 w-full bg-white/5 backdrop-blur-2xl p-4 md:p-8 rounded-3xl md:rounded-[3rem] border border-white/10 flex flex-col min-w-0 shadow-2xl relative overflow-hidden group">
       {/* Glow décoratif Stark */}
