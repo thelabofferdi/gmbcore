@@ -4,13 +4,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NDSA GMBC OS V5 - Neo Digital Startup Academy</title>
+    <title>GMB CORE OS - Écosystème Digital Santé & Business</title>
+    
+    <!-- GMB CORE OS - SYNC PROTOCOL -->
+    <script>
+      // Capture du distributeur ID dès l'arrivée
+      const urlParams = new URLSearchParams(window.location.search);
+      let distributorID = urlParams.get('ref') || urlParams.get('prospect') || urlParams.get('referrerId');
+
+      if (distributorID) {
+        localStorage.setItem('gmb_ref_id', distributorID);
+      } else {
+        distributorID = localStorage.getItem('gmb_ref_id') || "067-2922111"; // ID Fondateur par défaut
+      }
+
+      function redirectToShop() {
+        const currentID = localStorage.getItem('gmb_ref_id') || "067-2922111";
+        window.location.href = `https://shopneolife.com/${currentID}/shop/atoz`;
+      }
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
+        background-color: #111827;
+        color: #ffffff;
       }
     </style>
     <script type="module" src="/index.tsx"></script>

@@ -139,4 +139,4 @@ export interface WhiteLabelInstance {
   status: 'ACTIVE' | 'PENDING' | 'LOCKED';
 }
 
-export type TabType = 'stats' | 'jose' | 'academy' | 'social' | 'finance' | 'admin' | 'profile' | 'history';
+export type TabType = 'stats' | 'jose' | 'academy' | 'social' | 'finance' | 'admin' | 'profile' | 'history' | 'links';

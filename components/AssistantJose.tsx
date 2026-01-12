@@ -11,6 +11,8 @@ import {
 import { voiceService } from '../services/voiceService';
 import { storageService } from '../services/storageService';
 import { getCurrentSponsor } from '../services/referralService';
+import { getPromptForMode } from '../services/promptService';
+import { getDistributorID } from '../services/trackingService';
 import { Message, Language, AIPersona, ReferralContext, DiagnosticReport, ClinicalData } from '../types'; 
 import { SYSTEM_CONFIG, I18N as I18N_CONST } from '../constants';
 import { jsPDF } from 'jspdf';
@@ -25,6 +27,12 @@ interface AssistantJoseProps {
   currentSubscriberId?: string;
   currentUserWebAlias?: string; // Web Alias NeoLife de l'utilisateur
   prospectMode?: boolean;
+  recruitmentMode?: boolean;
+  salesMode?: boolean;
+  linkId?: string;
+  referrerId?: string;
+  customerId?: string;
+  healthData?: any;
   onConversationEnd?: (messages: Message[]) => void;
 }
 
@@ -33,6 +41,12 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
   currentSubscriberId,
   currentUserWebAlias,
   prospectMode = false,
+  recruitmentMode = false,
+  salesMode = false,
+  linkId,
+  referrerId,
+  customerId,
+  healthData,
   onConversationEnd
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -244,7 +258,16 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
     
     setIsScanning(medicalMode && !!selectedImage);
     const userMsgId = 'msg_' + Date.now();
-    const promptPrefix = medicalMode ? "[ACTION: BIO-SCAN MÉDICAL APPROFONDI] Veuillez analyser ce document clinique : " : "";
+    
+    // Construire le prompt selon le mode
+    let promptPrefix = "";
+    if (medicalMode) {
+      promptPrefix = "[ACTION: BIO-SCAN MÉDICAL APPROFONDI] Veuillez analyser ce document clinique : ";
+    } else if (recruitmentMode) {
+      promptPrefix = getPromptForMode('recruitment') + "\n\nDistributeur ID: " + getDistributorID() + "\n\n";
+    } else if (salesMode) {
+      promptPrefix = getPromptForMode('sales') + "\n\nDistributeur ID: " + getDistributorID() + "\n\nLien boutique: https://shopneolife.com/" + getDistributorID() + "/shop/atoz\n\n";
+    }
     
     const userMsg: Message = { 
       id: userMsgId, 

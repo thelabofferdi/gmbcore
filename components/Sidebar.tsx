@@ -33,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'social', label: t.social, icon: Share2 },
         { id: 'finance', label: t.finance, icon: Wallet },
         { id: 'profile', label: "Mon Profil", icon: User },
+        { id: 'links', label: "Générateur de Liens", icon: Layers },
         ...(currentUser?.role === 'ADMIN' ? [{ id: 'admin', label: t.admin, icon: Settings }] : []),
     ];
 

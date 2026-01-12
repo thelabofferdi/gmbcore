@@ -18,6 +18,7 @@ import { PasswordResetModal } from './components/PasswordResetModal';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
+import { LinkGenerator } from './components/LinkGenerator';
 
 import { Language, AuthUser, TabType } from './types';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from './services/geminiService';
@@ -336,6 +337,7 @@ const App: React.FC = () => {
           {activeTab === 'social' && <SocialSync />}
           {activeTab === 'finance' && <FinanceView currentUser={currentUser} />}
           {activeTab === 'profile' && currentUser && <ProfileView user={currentUser} onUpdate={(u) => setCurrentUser(u)} onLogout={() => { localStorage.removeItem('ndsa_session'); setCurrentUser(null); }} />}
+          {activeTab === 'links' && currentUser && <LinkGenerator userId={currentUser.id} />}
           {activeTab === 'admin' && currentUser?.role === 'ADMIN' && adminStats && <AdminMonitor stats={adminStats} />}
         </div>
       </main>
