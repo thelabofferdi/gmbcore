@@ -144,10 +144,10 @@ const App: React.FC = () => {
   const prospectLinkId = urlParams.get('prospect');
   const referrerId = urlParams.get('ref');
 
-  // Si mode prospect, afficher ProspectMode (TEMPORAIREMENT DÉSACTIVÉ DANS LE CODE ORIGINAL MAIS JE LE LAISSE COMMENT?)
-  // if (prospectLinkId && referrerId) {
-  //   return <ProspectMode linkId={prospectLinkId} referrerId={referrerId} />;
-  // }
+  // Si mode prospect, afficher ProspectMode
+  if (prospectLinkId && referrerId) {
+    return <ProspectMode linkId={prospectLinkId} referrerId={referrerId} />;
+  }
 
   useEffect(() => {
     const loadStats = async () => {

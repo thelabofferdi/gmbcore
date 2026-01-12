@@ -12,13 +12,13 @@ export const LinkGenerator: React.FC<LinkGeneratorProps> = ({ userId }) => {
 
   const generateRecruitmentLink = () => {
     const linkId = `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const link = `${window.location.origin}/recruitment?linkId=${linkId}&referrerId=${userId}`;
+    const link = `${window.location.origin}?prospect=${linkId}&ref=${userId}`;
     setRecruitmentLinks([...recruitmentLinks, link]);
   };
 
   const generateSalesLink = () => {
     const linkId = `sales_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const link = `${window.location.origin}/sales?linkId=${linkId}&distributorId=${userId}`;
+    const link = `${window.location.origin}?prospect=${linkId}&ref=${userId}`;
     setSalesLinks([...salesLinks, link]);
   };
 
