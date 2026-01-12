@@ -5,9 +5,11 @@ import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../
 import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
 import { apiKeyManager } from "./apiKeyManager";
 
-export const getAIInstance = () => {
-  // Utiliser la première clé active pour l'instant
-  const activeKey = "AIzaSyA_CWeqELu68E5FTZ95A1_lc599ulMZvZY";
+export const getAIInstance = async () => {
+  const activeKey = await apiKeyManager.getCurrentKey();
+  if (!activeKey) {
+    throw new Error('Aucune clé API disponible');
+  }
   console.log(`🔑 Utilisation de la clé: ${activeKey.substring(0, 20)}...`);
   return new GoogleGenAI({ apiKey: activeKey });
 };
@@ -23,7 +25,27 @@ export const generateJoseResponseStream = async (
   userWebAlias?: string, // Web Alias NeoLife de l'utilisateur connecté
   prospectMode?: boolean // Mode prospect pour collecter les infos
 ) => {
-  const ai = getAIInstance();
+  let ai;
+  let retryCount = 0;
+  const maxRetries = 3;
+
+  while (retryCount < maxRetries) {
+    try {
+      ai = await getAIInstance();
+      break;
+    } catch (error) {
+      console.error(`❌ Tentative ${retryCount + 1} échouée:`, error);
+      retryCount++;
+      
+      if (retryCount < maxRetries) {
+        console.log('🔄 Rotation de clé API...');
+        await apiKeyManager.rotateKey();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s
+      } else {
+        throw new Error('Toutes les clés API sont indisponibles');
+      }
+    }
+  }
   
   const contents: any[] = history.map(msg => ({
     role: msg.role === 'user' ? 'user' : 'model',
