@@ -37,21 +37,17 @@ class ApiKeyManager {
 
   // Initialiser les nouvelles clés dans Supabase
   async initializeKeys() {
-    const newKeys = [
-      'AIzaSyAWJO3TIqpaOjTu_3FjPSYwdxyl3cj-vXI',
-      'AIzaSyDiIAXjEmFTkyTpZZnVrgq5pbe67jl5qIc',
-      'AIzaSyCfJOM6wO9w9NXEjqqwodUvmEXnlQY33gw',
-      'AIzaSyCRq2KQIfYysPIvTej9-x1yE8BAbWgpOZo',
-      'AIzaSyBna8vcirJ96PR4XNAGiEedEkVPy_yY6AQ',
-      'AIzaSyCZZfy_L4IkviKghzYwWRtdSD9k3dvfE-8',
-      'AIzaSyCS5vZiiUFdYoMzDuWuq8x6Iae5hLHwhco',
-      'AIzaSyByxEOhFXI4O94LG8lPRzUvGidbPJzFmb8',
-      'AIzaSyCoFUhPCbZaE-mkuecgRPoyK7pquoxaVqQ',
-      'AIzaSyBkSHwVZqbwzXqxNLrsCxzlkIvfxXOqpA8',
-      'AIzaSyClgKKmdqoforbrS8sbFKISBvj7SWP1FtY',
-      'AIzaSyBDHdIidHCaekz8jKqIO4AXUIFwWZYzdPM',
-      'AIzaSyDH1N2P3ua2LS-OSsxSHGECfTSwiM0VMCg'
-    ];
+    // Les clés sont maintenant récupérées depuis les variables d'environnement
+    const newKeys = [];
+    for (let i = 1; i <= 13; i++) {
+      const key = import.meta.env[`VITE_GEMINI_KEY_${i}`];
+      if (key) newKeys.push(key);
+    }
+
+    if (newKeys.length === 0) {
+      console.error('❌ Aucune clé API trouvée dans les variables d\'environnement');
+      return;
+    }
 
     console.log('🔐 Initialisation des clés API sécurisées...');
 

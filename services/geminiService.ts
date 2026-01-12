@@ -28,7 +28,8 @@ export const getAIInstance = async () => {
   }
   
   const activeKey = keys[currentKeyIndex % keys.length];
-  console.log(`🔑 Utilisation de la clé: ${activeKey.substring(0, 20)}...`);
+  // Log sécurisé sans exposer la clé
+  console.log(`🔑 Clé API ${currentKeyIndex + 1}/${keys.length} sélectionnée`);
   return new GoogleGenAI({ apiKey: activeKey });
 };
 
