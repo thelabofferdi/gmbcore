@@ -1,9 +1,5 @@
 
-import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
-import { SYSTEM_CONFIG } from "../constants";
-import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../types";
-import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
-
+import { Message, ReferralContext, Language, AIPersona } from "../types";
 import { generateGroqResponseStream } from './groqService';
 import { analyzeImageWithGroq } from './groqVision';
 
@@ -221,131 +217,35 @@ export const analyzeClinicalData = async (imageContent: { data: string; mimeType
     return null;
   }
 };
-    ],
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        required: ["patient", "biomarkers", "analysis", "risk_flags", "timestamps"],
-        properties: {
-          patient: {
-            type: Type.OBJECT,
-            properties: {
-              age: { type: Type.NUMBER },
-              sex: { type: Type.STRING }
-            }
-          },
-          biomarkers: {
-            type: Type.OBJECT,
-            properties: {
-              glycemia_mmol_l: { type: Type.NUMBER },
-              cholesterol_total_mmol_l: { type: Type.NUMBER },
-              hdl_mmol_l: { type: Type.NUMBER },
-              ldl_mmol_l: { type: Type.NUMBER },
-              triglycerides_mmol_l: { type: Type.NUMBER },
-              systolic_bp: { type: Type.NUMBER },
-              diastolic_bp: { type: Type.NUMBER },
-              bmi: { type: Type.NUMBER }
-            }
-          },
-          analysis: { type: Type.STRING },
-          risk_flags: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          },
-          timestamps: {
-            type: Type.OBJECT,
-            properties: {
-              created_at: { type: Type.STRING }
-            }
-          }
-        }
-      }
-    }
-  });
-
-  try {
-    const clinicalData = JSON.parse(response.text);
-    
-    // Générer les recommandations produits basées sur les biomarqueurs
-    if (clinicalData.biomarkers) {
-      const recommendations = neoLifeAPI.getRecommendationsForBiomarkers(clinicalData.biomarkers);
-      
-      // Ajouter les liens de commande avec tracking vendeur
-      const sellerId = SYSTEM_CONFIG.founder.id; // ID par défaut ou depuis le contexte
-      const orderLink = neoLifeAPI.createDirectOrderLink(recommendations, sellerId);
-      
-      clinicalData.protocol = recommendations.map(rec => ({
-        product: rec.product.title,
-        sku: rec.product.sku,
-        dosage: rec.dosage,
-        duration_days: 30,
-        reason: rec.reason,
-        price: rec.product.member.singles,
-        order_url: `${orderLink}&focus=${rec.product.sku}` // Lien direct produit
-      }));
-      
-      clinicalData.order_link = orderLink; // Lien commande complète
-    }
-    
-    return clinicalData;
-  } catch (e) {
-    console.error("JSON Parse Error during clinical analysis", e);
-    return null;
-  }
-};
 
 export const generateBiologicalVisualization = async (prompt: string) => {
-  const ai = getAIInstance();
-  const fullPrompt = `Advanced biomedical 3D HUD visualization, futuristic medical scanner interface, microscopic view of human cells being restored by golden energy, laboratory aesthetics, 8k resolution: ${prompt}`;
-  
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: fullPrompt }] },
-    config: { imageConfig: { aspectRatio: "16:9" } }
-  });
-
-  for (const part of response.candidates[0].content.parts) {
-    if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
-  }
+  // Désactivé temporairement avec Groq
   return null;
 };
 
 export const generateJoseAudio = async (text: string, language: Language = 'fr') => {
   return new Promise((resolve, reject) => {
     try {
-      // TTS Natif du navigateur - Plus rapide et gratuit
+      // TTS Natif du navigateur
       const utterance = new SpeechSynthesisUtterance(text.replace(/[*#]/g, ''));
       
-      // Configuration pour José
       utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US';
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
       utterance.volume = 0.8;
       
-      // Essayer de trouver une voix appropriée
       const voices = speechSynthesis.getVoices();
       const targetLang = utterance.lang.substring(0, 2);
       const voice = voices.find(v => v.lang.startsWith(targetLang));
       
-      if (voice) {
-        utterance.voice = voice;
-      }
+      if (voice) utterance.voice = voice;
 
-      utterance.onend = () => {
-        resolve('native-tts-complete');
-      };
+      utterance.onend = () => resolve('native-tts-complete');
+      utterance.onerror = (error) => reject(error);
 
-      utterance.onerror = (error) => {
-        console.error('TTS Error:', error);
-        reject(error);
-      };
-
-      // Lancer la synthèse vocale native
       speechSynthesis.speak(utterance);
       
     } catch (error) {
-      console.error('Native TTS Error:', error);
       reject(error);
     }
   });
