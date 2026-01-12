@@ -3,13 +3,20 @@ import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/ge
 import { SYSTEM_CONFIG } from "../constants";
 import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../types";
 import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
-import { apiKeyManager } from "./apiKeyManager";
+
+// Clés API de fallback temporaires
+const FALLBACK_KEYS = [
+  'AIzaSyAWJO3TIqpaOjTu_3FjPSYwdxyl3cj-vXI',
+  'AIzaSyDiIAXjEmFTkyTpZZnVrgq5pbe67jl5qIc',
+  'AIzaSyCfJOM6wO9w9NXEjqqwodUvmEXnlQY33gw',
+  'AIzaSyCRq2KQIfYysPIvTej9-x1yE8BAbWgpOZo',
+  'AIzaSyBna8vcirJ96PR4XNAGiEedEkVPy_yY6AQ'
+];
+
+let currentKeyIndex = 0;
 
 export const getAIInstance = async () => {
-  const activeKey = await apiKeyManager.getCurrentKey();
-  if (!activeKey) {
-    throw new Error('Aucune clé API disponible');
-  }
+  const activeKey = FALLBACK_KEYS[currentKeyIndex % FALLBACK_KEYS.length];
   console.log(`🔑 Utilisation de la clé: ${activeKey.substring(0, 20)}...`);
   return new GoogleGenAI({ apiKey: activeKey });
 };
@@ -39,7 +46,7 @@ export const generateJoseResponseStream = async (
       
       if (retryCount < maxRetries) {
         console.log('🔄 Rotation de clé API...');
-        await apiKeyManager.rotateKey();
+        currentKeyIndex = (currentKeyIndex + 1) % FALLBACK_KEYS.length;
         await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s
       } else {
         throw new Error('Toutes les clés API sont indisponibles');

@@ -19,7 +19,6 @@ import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { LinkGenerator } from './components/LinkGenerator';
-import { initializeApp } from './services/appInitializer';
 
 import { Language, AuthUser, TabType } from './types';
 import { generateJoseAudio, decodeBase64, decodeAudioData } from './services/geminiService';
@@ -60,9 +59,6 @@ const App: React.FC = () => {
   useEffect(() => {
     // @ts-ignore
     window.currentUser = currentUser ? { id: currentUser.id } : undefined;
-    
-    // Initialiser l'application avec les clés API
-    initializeApp();
   }, [currentUser]);
 
   // Gérer les tokens d'authentification Magic Link dans l'URL
