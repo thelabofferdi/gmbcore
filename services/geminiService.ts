@@ -5,6 +5,7 @@ import { Message, ReferralContext, Language, AIPersona, ClinicalData } from "../
 import { neoLifeAPI, ProductRecommendation } from "./neolifeService";
 
 import { generateGroqResponseStream } from './groqService';
+import { analyzeImageWithGroq } from './groqVision';
 
 export const getAIInstance = async () => {
   // Mode Groq activé - inférence ultra-rapide
@@ -200,25 +201,26 @@ const buildSystemPrompt = (
 };
 
 export const analyzeClinicalData = async (imageContent: { data: string; mimeType: string }): Promise<ClinicalData | null> => {
-  const ai = await getAIInstance();
-  
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: [
-      {
-        parts: [
-          { inlineData: { data: imageContent.data, mimeType: imageContent.mimeType } },
-          { text: `
-            MODE ADAPTATIF INTELLIGENT ACTIVÉ.
-            Extrait les données cliniques de ce document médical. 
-            RÈGLES STRICTES :
-            - Analyse UNIQUEMENT les données présentes.
-            - Si un biomarqueur est absent, mets-le à null.
-            - N'invente jamais de chiffres.
-            - Sortie JSON valide uniquement.
-          ` }
-        ]
-      }
+  try {
+    // Essayer Groq Vision d'abord
+    const analysis = await analyzeImageWithGroq(imageContent.data, imageContent.mimeType);
+    
+    // Parser la réponse en JSON si possible
+    try {
+      return JSON.parse(analysis);
+    } catch {
+      // Si pas JSON, retourner analyse textuelle
+      return {
+        analysis: analysis,
+        risk_flags: [],
+        recommendations: []
+      };
+    }
+  } catch (error) {
+    console.log('Analyse d\'image temporairement indisponible');
+    return null;
+  }
+};
     ],
     config: {
       responseMimeType: "application/json",
