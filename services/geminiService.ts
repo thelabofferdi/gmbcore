@@ -1,7 +1,7 @@
 
 import { Message, ReferralContext, Language, AIPersona } from "../types";
 import { generateGroqResponseStream } from './groqService';
-import { analyzeImageWithGroq } from './groqVision';
+import { analyzeImageWithGemini, generateGeminiAudio } from './hybridService';
 
 export const getAIInstance = async () => {
   // Mode Groq activé - inférence ultra-rapide
@@ -199,7 +199,7 @@ const buildSystemPrompt = (
 export const analyzeClinicalData = async (imageContent: { data: string; mimeType: string }): Promise<ClinicalData | null> => {
   try {
     // Essayer Groq Vision d'abord
-    const analysis = await analyzeImageWithGroq(imageContent.data, imageContent.mimeType);
+    const analysis = await analyzeImageWithGemini(imageContent.data, imageContent.mimeType);
     
     // Parser la réponse en JSON si possible
     try {
@@ -224,11 +224,13 @@ export const generateBiologicalVisualization = async (prompt: string) => {
 };
 
 export const generateJoseAudio = async (text: string, language: Language = 'fr') => {
-  return new Promise((resolve, reject) => {
-    try {
-      // TTS Natif du navigateur
+  try {
+    // Essayer Gemini TTS d'abord
+    return await generateGeminiAudio(text);
+  } catch (error) {
+    // Fallback vers TTS natif
+    return new Promise((resolve, reject) => {
       const utterance = new SpeechSynthesisUtterance(text.replace(/[*#]/g, ''));
-      
       utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US';
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
@@ -244,11 +246,8 @@ export const generateJoseAudio = async (text: string, language: Language = 'fr')
       utterance.onerror = (error) => reject(error);
 
       speechSynthesis.speak(utterance);
-      
-    } catch (error) {
-      reject(error);
-    }
-  });
+    });
+  }
 };
 
 export function decodeBase64(base64: string): Uint8Array {
