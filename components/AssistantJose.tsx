@@ -161,13 +161,23 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
     }
 
     if (messages.length === 0) {
-      setMessages([{ id: 'welcome', role: 'model', parts: [{ text: t.welcome + "\n\nEnvoyez-moi une photo de votre bilan sanguin ou d'une ordonnance, je vais décoder votre bio-statut." }], timestamp: new Date(), status: 'read' }]);
+      let welcomeMessage = t.welcome;
+      
+      if (recruitmentMode) {
+        welcomeMessage = "🚀 Bienvenue dans l'écosystème GMB CORE OS ! Je suis José, votre coach business IA.\n\n💰 **Objectif :** Vous faire devenir millionnaire en 1 an\n🤖 **Méthode :** L'IA travaille 24/7 pour vous\n🌍 **Portée :** Succès mondial, même sans instruction\n\nPrêt à découvrir comment transformer votre vie financière ?";
+      } else if (salesMode) {
+        welcomeMessage = "🩺 Bonjour ! Je suis José, votre expert en nutrition cellulaire.\n\n🔬 **Spécialités :** Médecine générale, pharmacie, nutrition cellulaire\n🧬 **Protocole :** TRE-EN-EN → Facteur thermique → Trio de relance\n📊 **Mission :** Analyser votre santé et recommander les bons produits NeoLife\n\nEnvoyez-moi votre bilan sanguin ou décrivez vos symptômes pour commencer !";
+      } else {
+        welcomeMessage += "\n\nEnvoyez-moi une photo de votre bilan sanguin ou d'une ordonnance, je vais décoder votre bio-statut.";
+      }
+      
+      setMessages([{ id: 'welcome', role: 'model', parts: [{ text: welcomeMessage }], timestamp: new Date(), status: 'read' }]);
     }
 
     return () => {
       unsubVoice();
     };
-  }, [language, currentSubscriberId]);
+  }, [language, currentSubscriberId, recruitmentMode, salesMode]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

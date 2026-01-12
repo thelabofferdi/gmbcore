@@ -67,42 +67,79 @@ export const ProspectMode: React.FC<ProspectModeProps> = ({ linkId, referrerId }
   }
 
   if (step === 'welcome') {
-    const welcomeTitle = isRecruitmentMode 
-      ? "Rejoignez l'Écosystème GMB CORE OS" 
-      : "Analyse Santé Personnalisée";
-    
-    const welcomeMessage = isRecruitmentMode
-      ? "Découvrez comment devenir millionnaire en un an avec notre système d'IA qui travaille 24/7 pour vous."
-      : "Votre expert en nutrition cellulaire vous attend. Analysez vos bilans de santé et obtenez des recommandations personnalisées.";
-
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-gray-800 border border-cyan-500/30 p-8 rounded-3xl text-center max-w-md">
-          <div className="w-20 h-20 bg-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6">
-            <MessageCircle className="text-black" size={40} />
+    if (isRecruitmentMode) {
+      return (
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+          <div className="bg-gray-800 border border-yellow-500/50 p-8 rounded-3xl text-center max-w-lg">
+            <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-black font-bold text-2xl">€</span>
+            </div>
+            
+            <h1 className="text-3xl font-black text-white mb-4">
+              <span className="text-yellow-400">GMB CORE OS</span><br/>
+              Écosystème Business
+            </h1>
+            
+            <p className="text-gray-300 mb-6">
+              "Autrefois c'était long, aujourd'hui c'est une 'sucette'. En un an, devenez millionnaire."
+            </p>
+            
+            <div className="bg-gray-700/50 p-4 rounded-lg mb-6 text-left">
+              <p className="text-cyan-300 text-sm mb-2">✨ Même sans instruction</p>
+              <p className="text-cyan-300 text-sm mb-2">🤖 L'IA travaille 24/7 pour vous</p>
+              <p className="text-cyan-300 text-sm">🌍 Succès mondial garanti</p>
+            </div>
+            
+            <button
+              onClick={handleStartChat}
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-8 py-4 rounded-2xl font-black text-lg transition-colors w-full border-2 border-yellow-400 hover:border-yellow-300"
+            >
+              DÉMARRER MON BUSINESS
+            </button>
+            
+            <p className="text-xs text-gray-500 mt-4">
+              Formation gratuite • Aucune inscription requise
+            </p>
           </div>
-          
-          <h1 className="text-3xl font-black text-white mb-4">
-            {welcomeTitle}
-          </h1>
-          
-          <p className="text-gray-300 mb-6">
-            {welcomeMessage}
-          </p>
-          
-          <button
-            onClick={handleStartChat}
-            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-8 py-4 rounded-2xl font-black text-lg transition-colors w-full border-2 border-yellow-400 hover:border-yellow-300"
-          >
-            {isRecruitmentMode ? "Démarrer Mon Business" : "Commencer l'Analyse"}
-          </button>
-          
-          <p className="text-xs text-gray-500 mt-4">
-            {isRecruitmentMode ? "Formation gratuite • Aucune inscription requise" : "Consultation gratuite • Aucune inscription requise"}
-          </p>
         </div>
-      </div>
-    );
+      );
+    } else {
+      return (
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+          <div className="bg-gray-800 border border-green-500/50 p-8 rounded-3xl text-center max-w-lg">
+            <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-black font-bold text-2xl">🩺</span>
+            </div>
+            
+            <h1 className="text-3xl font-black text-white mb-4">
+              <span className="text-green-400">Analyse Santé</span><br/>
+              Nutrition Cellulaire
+            </h1>
+            
+            <p className="text-gray-300 mb-6">
+              Votre expert en nutrition cellulaire vous attend. Protocole TRE-EN-EN et recommandations personnalisées.
+            </p>
+            
+            <div className="bg-gray-700/50 p-4 rounded-lg mb-6 text-left">
+              <p className="text-green-300 text-sm mb-2">🧬 Barrière cellulaire (TRE-EN-EN)</p>
+              <p className="text-green-300 text-sm mb-2">🌡️ Facteur thermique & émotionnel</p>
+              <p className="text-green-300 text-sm">💊 Trio de relance personnalisé</p>
+            </div>
+            
+            <button
+              onClick={handleStartChat}
+              className="bg-gradient-to-r from-green-500 to-cyan-500 text-black px-8 py-4 rounded-2xl font-black text-lg transition-colors w-full border-2 border-green-400 hover:border-green-300"
+            >
+              COMMENCER L'ANALYSE
+            </button>
+            
+            <p className="text-xs text-gray-500 mt-4">
+              Consultation gratuite • Aucune inscription requise
+            </p>
+          </div>
+        </div>
+      );
+    }
   }
 
   if (step === 'contact') {
