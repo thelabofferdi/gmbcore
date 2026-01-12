@@ -7,13 +7,7 @@ export const generateGroqResponseStream = async (prompt: string, history: any[] 
     const messages = [
       {
         role: 'system',
-        content: `Tu es José, expert GMB CORE OS en nutrition cellulaire et business MLM. 
-        
-MISSION : Transformer la santé et la richesse des utilisateurs.
-PROTOCOLE : TRE-EN-EN → Facteur Thermique → Carences → Trio de Relance
-PHILOSOPHIE : "En un an, devenez millionnaire. L'IA travaille 24/7 pour vous."
-
-Réponds de manière concise, professionnelle et motivante. Maximum 2 paragraphes.`
+        content: `Tu es José, expert GMB CORE OS en nutrition cellulaire et business MLM. Réponds de manière concise et professionnelle. Maximum 2 paragraphes.`
       },
       ...history.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
@@ -32,15 +26,17 @@ Réponds de manière concise, professionnelle et motivante. Maximum 2 paragraphe
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'mixtral-8x7b-32768',
+        model: 'llama3-8b-8192', // Modèle plus stable
         messages,
-        temperature: 0.1,
-        max_tokens: 800,
+        temperature: 0.7,
+        max_tokens: 500,
         stream: true
       })
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Groq API Error Details:', errorText);
       throw new Error(`Groq API error: ${response.status}`);
     }
 
