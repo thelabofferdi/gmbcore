@@ -307,7 +307,7 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
 
       // Timeout de 5 secondes pour éviter le chargement infini
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout: José ne répond pas')), 5000)
+        setTimeout(() => reject(new Error('Timeout: José prend une petite pause')), 5000)
       );
 
       const responsePromise = generateJoseResponseStream(
@@ -347,15 +347,15 @@ export const AssistantJose: React.FC<AssistantJoseProps> = ({
       setIsScanning(false);
       
       const errorMessage = error instanceof Error && error.message.includes('Timeout') 
-        ? 'José ne répond pas. Essayez de reformuler votre question.'
-        : 'Erreur de connexion. Vérifiez votre réseau.';
+        ? 'Nous rencontrons un petit souci technique de notre côté. Revenez dans quelques minutes, José sera de retour ! 😊'
+        : 'Nous avons un petit problème de connexion. Nous nous occupons de tout, réessayez dans un moment ! 🔧';
       
       const webAlias = currentUserWebAlias || SYSTEM_CONFIG.founder.webAlias || 'startupforworld';
       
       setMessages(prev => [...prev, { 
         id: 'error_' + Date.now(),
         role: 'model', 
-        parts: [{ text: `❌ ${errorMessage}\n\n🛒 En attendant, découvrez nos produits : https://shopneolife.com/${webAlias}/shop` }],
+        parts: [{ text: `💙 ${errorMessage}\n\n🛒 En attendant, découvrez nos produits : https://shopneolife.com/${webAlias}/shop` }],
         timestamp: new Date(),
         status: 'read'
       }]);

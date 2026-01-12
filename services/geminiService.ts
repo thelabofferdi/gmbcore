@@ -24,7 +24,7 @@ let currentKeyIndex = 0;
 export const getAIInstance = async () => {
   const keys = getApiKeys();
   if (keys.length === 0) {
-    throw new Error('Aucune clé API configurée');
+    throw new Error('José se prépare, revenez dans un instant ! ⚙️');
   }
   
   const activeKey = keys[currentKeyIndex % keys.length];
@@ -61,7 +61,7 @@ export const generateJoseResponseStream = async (
         currentKeyIndex = (currentKeyIndex + 1) % getApiKeys().length;
         await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s
       } else {
-        throw new Error('Toutes les clés API sont indisponibles');
+        throw new Error('José fait une petite pause technique, revenez dans quelques minutes ! 😊');
       }
     }
   }
