@@ -1,20 +1,46 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# GMBC-OS (Global MLM Business Core Optimization System)
 
-# Run and deploy your AI Studio app
+## Description
+Plateforme d'intelligence artificielle pour le développement d'affaires NeoLife avec Coach José.
 
-This contains everything you need to run your app locally.
+## Structure du projet
+```
+├── src/
+│   ├── components/     # Composants React
+│   ├── services/       # Services et API
+│   ├── types/          # Types TypeScript
+│   ├── App.tsx         # Composant principal
+│   ├── constants.ts    # Constantes globales
+│   └── index.tsx       # Point d'entrée
+├── config/             # Configuration API
+├── tests/              # Tests
+├── supabase/           # Configuration Supabase
+└── dist/               # Build de production
+```
 
-View your app in AI Studio: https://ai.studio/apps/drive/1MrAh1kh2dtdScVFtNm7xbzhfJjoXFILt
+## Installation
+```bash
+npm install
+```
 
-## Run Locally
+## Développement
+```bash
+npm run dev
+```
 
-**Prerequisites:**  Node.js
+## Production
+```bash
+npm run build
+npx vercel --prod
+```
 
+## URL de production
+https://gmbcoreos.com
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Technologies
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Supabase
+- Vercel

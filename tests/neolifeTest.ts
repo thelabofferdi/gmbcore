@@ -1,4 +1,4 @@
-import { neoLifeAPI } from '../services/neolifeService';
+import { neoLifeAPI } from '../src/services/neolifeService';
 
 // Test de l'intégration NeoLife API
 export const testNeoLifeIntegration = async () => {

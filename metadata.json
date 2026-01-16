@@ -1,8 +1,0 @@
-{
-  "name": "NDSA GMBC OS V5",
-  "description": "The official Neo Digital Startup Academy (NDSA) Hub for Health and Biological Restoration. Features AI Coach José, the NDSA Academy, and social synchronization tools.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
-}

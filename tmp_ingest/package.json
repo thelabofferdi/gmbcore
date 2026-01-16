@@ -1,0 +1,17 @@
+{
+  "name": "tmp_ingest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ingest-docs.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
+    "dotenv": "^17.2.3",
+    "mammoth": "^1.11.0"
+  }
+}
