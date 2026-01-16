@@ -31,8 +31,8 @@ class ProspectService {
       throw new Error(`ID NeoLife invalide: ${referrerId}. Format attendu: XXX-XXXXXXX`);
     }
 
-    const linkId = `${referrerId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+    const linkId = `${referrerId}-${crypto.randomUUID()}`;
+
     return {
       link_id: linkId,
       referrer_id: referrerId,
@@ -53,7 +53,7 @@ class ProspectService {
   async saveProspectLead(lead: ProspectLead): Promise<string | null> {
     try {
       console.log('Saving prospect lead:', lead);
-      
+
       // Utiliser rpc pour contourner RLS
       const { data, error } = await supabase.rpc('insert_prospect_lead', {
         p_referrer_id: lead.referrer_id,
@@ -69,7 +69,7 @@ class ProspectService {
         // Fallback: essayer l'insertion directe
         return await this.saveProspectLeadDirect(lead);
       }
-      
+
       console.log('Prospect saved via RPC with ID:', data);
       return data;
     } catch (error) {
@@ -108,7 +108,7 @@ class ProspectService {
   async getLeadsByReferrer(referrerId: string): Promise<ProspectLead[]> {
     try {
       console.log('Fetching leads for referrer:', referrerId);
-      
+
       // Désactiver RLS temporairement en utilisant service_role si disponible
       const { data, error } = await supabase
         .from('prospect_leads')
@@ -120,7 +120,7 @@ class ProspectService {
         console.error('Supabase error fetching leads:', error);
         throw error;
       }
-      
+
       console.log('Found leads:', data?.length || 0);
       return data || [];
     } catch (error) {
@@ -134,7 +134,7 @@ class ProspectService {
     try {
       const { error } = await supabase
         .from('prospect_leads')
-        .update({ 
+        .update({
           status,
           last_activity: new Date().toISOString()
         })
@@ -149,13 +149,13 @@ class ProspectService {
 
   // Collecter les informations de contact du prospect
   async collectProspectInfo(
-    linkId: string, 
+    linkId: string,
     contactInfo: { email?: string; phone?: string; name?: string },
     conversationData: any[]
   ): Promise<string | null> {
     // Extraire l'ID du référent depuis le lien
     const referrerId = linkId.split('-')[0];
-    
+
     const lead: ProspectLead = {
       referrer_id: referrerId,
       prospect_email: contactInfo.email,

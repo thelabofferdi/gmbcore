@@ -176,7 +176,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
-    const syncTimer = setInterval(() => setSyncStatus(prev => +(prev + (Math.random() * 0.1 - 0.05)).toFixed(1)), 5000);
+    const syncTimer = setInterval(() => setSyncStatus(prev => +(prev + (Math.sin(Date.now() / 10000) * 0.05)).toFixed(1)), 5000);
 
     // Check Supabase auth state
     const checkAuth = async () => {

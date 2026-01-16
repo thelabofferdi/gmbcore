@@ -408,7 +408,8 @@ Quelle est ta priorité absolue à cette seconde ?
 3️⃣ "Simple Curiosité" (Montre-moi comment ça marche)`
       ];
 
-      const randomStart = startScripts[Math.floor(Math.random() * startScripts.length)];
+      const randomIndex = crypto.getRandomValues(new Uint32Array(1))[0] % startScripts.length;
+      const randomStart = startScripts[randomIndex];
 
       setMessages(prev => [...prev, userMsg, {
         id: 'start_response',

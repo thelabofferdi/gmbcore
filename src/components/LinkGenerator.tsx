@@ -10,7 +10,7 @@ export const LinkGenerator: React.FC<LinkGeneratorProps> = ({ userId }) => {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   const generateProspectLink = () => {
-    const linkId = `prospect_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const linkId = `prospect_${crypto.randomUUID()}`;
     const link = `${window.location.origin}?prospect=${linkId}&ref=${userId}`;
     setProspectLinks([...prospectLinks, link]);
   };

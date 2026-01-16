@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 
 interface MarkdownRendererProps {
     content: string;
@@ -46,7 +47,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
                 elements.push(
                     <ul key={`list-${index}`} className="list-disc list-inside my-2 space-y-1">
                         {listItems.map((item, i) => (
-                            <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+                            <li key={i} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatInline(item)) }} />
                         ))}
                     </ul>
                 );
@@ -90,7 +91,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
 
             // Regular paragraphs with inline formatting
             elements.push(
-                <p key={index} className="my-2" dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+                <p key={index} className="my-2" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatInline(line)) }} />
             );
         });
 
@@ -99,7 +100,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
             elements.push(
                 <ul key="final-list" className="list-disc list-inside my-2 space-y-1">
                     {listItems.map((item, i) => (
-                        <li key={i} dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+                        <li key={i} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatInline(item)) }} />
                     ))}
                 </ul>
             );
